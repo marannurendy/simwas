@@ -3,6 +3,7 @@ import { View, Text, StatusBar, StyleSheet, Dimensions, ImageBackground, Touchab
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRoute } from '@react-navigation/native'
 import { useNavigation } from '@react-navigation/native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const Dimension = Dimensions.get('window')
 
@@ -10,11 +11,24 @@ const Header = () => {
 
     const Navigation = useNavigation()
 
+    let [kodeUnit, setKodeUnit] = useState()
+    let [nama, setNama] = useState()
+    let [username, setUsername] = useState()
+    let [userid, setUserid] = useState()
+    let [positionName, setPositionName] = useState()
+    let [role, setRole] = useState()
+
     useEffect(() => {
         const unsubscribe = Navigation.addListener('focus', async () => {
-            console.log(Route.name)
+            const syncStatus = await AsyncStorage.getItem('user_data')
+            let data = JSON.parse(syncStatus)
+            setKodeUnit(data.kode_unit)
+            setNama(data.nama)
+            setUsername(data.username)
+            setUserid(data.user_id)
+            setPositionName(data.position_name)
+            setRole(data.role)
         })
-
         return unsubscribe;
     })
 
@@ -25,20 +39,26 @@ const Header = () => {
             <View style={{ paddingTop: StatusBar.currentHeight }} >
                 <View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <View style={{ height:35, width: Dimension.width/4, marginBottom: 15 }}>
+                        <View style={{ height:35, width: Dimension.width/4, marginBottom: 10 }}>
                             <ImageBackground resizeMode='contain' source={require('../image/pnm.png')} style={styles.backgroundUmi} />
                         </View>
-                        <View style={{ marginRight: 10 }}>
-                            <MaterialCommunityIcons name='menu' size={25} color="black" />
-                        </View>
+                        {Route.name == 'Front Home' ? (
+                            <TouchableOpacity onPress={() => Navigation.openDrawer()}>
+                                <View style={{ marginRight: 10 }}>
+                                    <MaterialCommunityIcons name='menu' size={25} color="black" />
+                                </View>
+                            </TouchableOpacity>
+                        ) : (
+                            <View></View>
+                        )}
                     </View>
                     <View style={{ marginHorizontal: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
                         <View>
-                            <Text>USER TEST 1</Text>
-                            <Text>USERNAME01 - KEPALA AREA</Text>
-                            <Text>AREA TEST</Text>
+                            <Text style={{ fontSize: 17, fontWeight: 'bold' }}>{nama}</Text>
+                            <Text>{username} - {positionName}</Text>
+                            <Text>{kodeUnit}</Text>
                         </View>
-                        {Route.name == 'Home' ? (
+                        {Route.name == 'Front Home' ? (
                         <View></View>) : 
                         (
                             <TouchableOpacity style={{ alignSelf: 'flex-end'}} onPress={() => Navigation.goBack()} >
