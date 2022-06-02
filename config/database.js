@@ -40,6 +40,31 @@ db.transaction(tx => {
 
     // SURAT TUGAS
     tx.executeSql(
+        `create table if not exists ListSTSV(
+            Id INTEGER PRIMARY KEY,
+            No INTEGER PRIMARY KEY,
+            Tgl varchar,
+            tglMulai varchar,
+            tglSelesai varchar,
+            keterangan varchar,
+            nama_kelompok varchar,
+            m_Area varchar,
+            m_RegionId varchar,
+            tahun varchar,
+            Jenis_Pemeriksaan varchar,
+            Approval_By varchar,
+            Approval_Date varchar,
+            Approval_Flag varchar,
+            Approval_Ket varchar,
+            auditor varchar,
+            nama_auditor varchar,
+            jenisAuditor varchar,
+            syncBy varchar,
+            type varchar,
+            stat varchar)
+        ;`
+    );
+    tx.executeSql(
         `create table if not exists CabangDiperiksa(
             CabangID varchar UNIQUE, 
             NamaCabang varchar)
@@ -130,7 +155,7 @@ db.transaction(tx => {
     // tx.executeSql('DROP TABLE IF EXISTS OptionSVKC')
     // tx.executeSql('DROP TABLE IF EXISTS OptionSTAM')
     // tx.executeSql('DROP TABLE IF EXISTS CabangDiperiksa')
-    // tx.executeSql('DROP TABLE IF EXISTS ListPPM')
+    // tx.executeSql('DROP TABLE IF EXISTS ListSTSV')
     // tx.executeSql('DROP TABLE IF EXISTS ListRPM')
     // tx.executeSql('DROP TABLE IF EXISTS OptionST')
     // tx.executeSql('DROP TABLE IF EXISTS Pemeriksa')

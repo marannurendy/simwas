@@ -40,6 +40,160 @@ const getSyncData = (params) => new Promise((resolve) => {
         )
     }
 
+    const InsertST = (responseJson) => new Promise ((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListSTSV (
+                    Id,
+                    No,
+                    Tgl,
+                    tglMulai,
+                    tglSelesai,
+                    keterangan,
+                    Approval_By,
+                    Approval_Date,
+                    Approval_Flag,
+                    Approval_Ket,
+                    m_Area,
+                    tahun,
+                    syncBy,
+                    type) values `
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    query = query + "('"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].Tgl
+                    + "','"
+                    + responseJson.data[i].tglMulai
+                    + "','"
+                    + responseJson.data[i].tglSelesai
+                    + "','"
+                    + responseJson.data[i].keterangan
+                    + "','"
+                    + responseJson.data[i].Approval_By
+                    + "','"
+                    + responseJson.data[i].Approval_Date
+                    + "','"
+                    + responseJson.data[i].Approval_Flag
+                    + "','"
+                    + responseJson.data[i].Approval_Ket
+                    + "','"
+                    + responseJson.data[i].m_Area
+                    + "','"
+                    + responseJson.data[i].tahun
+                    + "','"
+                    + params.Username
+                    + "','"
+                    + "0"
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) query = query + ","
+                }
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('GAGAL INPUT ListKodeCLKA --> ' + error.message)
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL');
+                return;
+            }
+        }catch(error){
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
+            return
+        }
+    })
+
+    const InsertSV = (responseJson) => new Promise ((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListSTSV (
+                    Id,
+                    No,
+                    Tgl,
+                    tglMulai,
+                    tglSelesai,
+                    nama_kelompok,
+                    keterangan,
+                    Approval_By,
+                    Approval_Date,
+                    Approval_Flag,
+                    Approval_Ket,
+                    auditor,
+                    jenisAuditor,
+                    tahun,
+                    syncBy,
+                    type) values `
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    query = query + "('"
+                    + responseJson.data[i].IdSV
+                    + "','"
+                    + responseJson.data[i].NoSV
+                    + "','"
+                    + responseJson.data[i].Tgl
+                    + "','"
+                    + responseJson.data[i].tglMulai
+                    + "','"
+                    + responseJson.data[i].tglSelesai
+                    + "','"
+                    + responseJson.data[i].nama_kelompok
+                    + "','"
+                    + responseJson.data[i].keterangan
+                    + "','"
+                    + responseJson.data[i].Approval_By
+                    + "','"
+                    + responseJson.data[i].Approval_Date
+                    + "','"
+                    + responseJson.data[i].Approval_Flag
+                    + "','"
+                    + responseJson.data[i].Approval_Ket
+                    + "','"
+                    + responseJson.data[i].auditor
+                    + "','"
+                    + responseJson.data[i].jenisAuditor
+                    + "','"
+                    + responseJson.data[i].tahun
+                    + "','"
+                    + params.Username
+                    + "','"
+                    + "1"
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) query = query + ","
+                }
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('GAGAL INPUT ListKodeCLKA --> ' + error.message)
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL');
+                return;
+            }
+        }catch(error){
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
+            return
+        }
+    })
+
     const InsertListKodeCLKA = (responseJson) => new Promise ((resolve, reject) => {
         try{
             if(responseJson.data !== null) {
@@ -61,7 +215,7 @@ const getSyncData = (params) => new Promise((resolve) => {
                     tx => {
                         tx.executeSql(query)
                     }, function(error) {
-                        reject('GAGAL INPUT ListKodeCLKA')
+                        reject('GAGAL INPUT ListKodeCLKA --> ' + error.message)
                     }, function() {
                         resolve('BERHASIL')
                     }
@@ -323,25 +477,45 @@ const getSyncData = (params) => new Promise((resolve) => {
     const InsertListRPM = (responseJson) => new Promise ((resolve, reject) => {
         try{
             if(responseJson.data !== null) {
-                let query = `INSERT OR IGNORE INTO ListRPM (
+                let query = `INSERT OR IGNORE INTO ListSTSV (
+                    Id,
+                    No,
+                    Tgl,
+                    tglMulai,
+                    tglSelesai,
+                    keterangan,
+                    m_RegionId,
+                    tahun,
+                    Jenis_Pemeriksaan,
                     Approval_By,
                     Approval_Date,
                     Approval_Flag,
                     Approval_Ket,
-                    IdST,
-                    JenisAuditor,
-                    Jenis_Pemeriksaan,
-                    Keterangan,
-                    M_RegionId,
-                    NoST,
-                    Tahun,
-                    Tanggal,
-                    TanggalMulai,
-                    TanggalSelesai,
                     auditor,
-                    nama_auditor) values `
+                    nama_auditor,
+                    jenisAuditor,
+                    syncBy,
+                    type) values `
                 for(let i = 0; i < responseJson.data.length; i++ ) {
                     query = query + "('"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].Tanggal
+                    + "','"
+                    + responseJson.data[i].TanggalMulai
+                    + "','"
+                    + responseJson.data[i].TanggalSelesai
+                    + "','"
+                    + responseJson.data[i].Keterangan
+                    + "','"
+                    + responseJson.data[i].M_RegionId
+                    + "','"
+                    + responseJson.data[i].Tahun
+                    + "','"
+                    + responseJson.data[i].Jenis_Pemeriksaan
+                    + "','"
                     + responseJson.data[i].Approval_By
                     + "','"
                     + responseJson.data[i].Approval_Date
@@ -350,29 +524,15 @@ const getSyncData = (params) => new Promise((resolve) => {
                     + "','"
                     + responseJson.data[i].Approval_Ket
                     + "','"
-                    + responseJson.data[i].IdST
-                    + "','"
-                    + responseJson.data[i].JenisAuditor
-                    + "','"
-                    + responseJson.data[i].Jenis_Pemeriksaan
-                    + "','"
-                    + responseJson.data[i].Keterangan
-                    + "','"
-                    + responseJson.data[i].M_RegionId
-                    + "','"
-                    + responseJson.data[i].NoST
-                    + "','"
-                    + responseJson.data[i].Tahun
-                    + "','"
-                    + responseJson.data[i].Tanggal
-                    + "','"
-                    + responseJson.data[i].TanggalMulai
-                    + "','"
-                    + responseJson.data[i].TanggalSelesai
-                    + "','"
                     + responseJson.data[i].auditor
                     + "','"
                     + responseJson.data[i].nama_auditor
+                    + "','"
+                    + responseJson.data[i].JenisAuditor
+                    + "','"
+                    + params.Username
+                    + "','"
+                    + "2"
                     + "')"
 
                     if (i != responseJson.data.length - 1) query = query + ","
@@ -383,7 +543,7 @@ const getSyncData = (params) => new Promise((resolve) => {
                     tx => {
                         tx.executeSql(query)
                     }, function(error) {
-                        reject('GAGAL INPUT DATA ListRPM')
+                        reject('GAGAL INPUT DATA ListRPM --> ' + error.message)
                     }, function() {
                         resolve('BERHASIL')
                     }
@@ -582,19 +742,6 @@ const getSyncData = (params) => new Promise((resolve) => {
 
     const syncFetch = async () => {
         const token = await AsyncStorage.getItem('token')
-        
-        const responseListKodeCLKA = await fetch(GetListKodeCLKA, {
-            method: 'GET',
-            headers: {
-                Authorization: token,
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-                }
-        })
-        const jsonListKodeCLKA = await responseListKodeCLKA.json(responseListKodeCLKA)
-        await InsertListKodeCLKA(jsonListKodeCLKA)
-        if (__DEV__) console.log(GetListKodeCLKA)
-        if (__DEV__) console.log('InsertListKodeCLKA DONE')
 
         const responseOptionSVKC = await fetch(GetOptionSVKC + '/' + params.Username, {
             method: 'GET',
@@ -605,9 +752,11 @@ const getSyncData = (params) => new Promise((resolve) => {
                 }
         })
         const jsonOptionSVKC  = await responseOptionSVKC.json(responseOptionSVKC)
-        await InsertOptionSVKC(jsonOptionSVKC)
-        if (__DEV__) console.log(GetOptionSVKC + '/' + params.Username)
-        if (__DEV__) console.log('AInsertOptionSVKC DONE')
+        if(params.Role === 'KC') {
+            await InsertSV(jsonOptionSVKC)
+            if (__DEV__) console.log(GetOptionSVKC + '/' + params.Username)
+            if (__DEV__) console.log('InsertOptionSVKC DONE')
+        }
 
         const responseOptionSTAM  = await fetch(OptionSTAM + '/' + params.Username, {
             method: 'GET',
@@ -618,9 +767,11 @@ const getSyncData = (params) => new Promise((resolve) => {
                 }
         })
         const jsonOptionSTAM = await responseOptionSTAM.json(responseOptionSTAM)
-        await InsertOptionSTAM(jsonOptionSTAM)
-        if (__DEV__) console.log(OptionSTAM + '/' + params.Username)
-        if (__DEV__) console.log('InsertOptionSTAM DONE')
+        if(params.Role === 'KA') {
+            await InsertST(jsonOptionSTAM)
+            if (__DEV__) console.log(OptionSTAM + '/' + params.Username)
+            if (__DEV__) console.log('InsertOptionSTAM DONE')
+        }
 
         const responseCabangDiperiksa  = await fetch(GetCabangDiperiksa + '/' + params.KodeUnit + '/' + params.PositionName, {
             method: 'GET',
@@ -676,19 +827,6 @@ const getSyncData = (params) => new Promise((resolve) => {
         const jsonOptionST = await responseOptionST.json(responseOptionST)
         await InsertOptionST(jsonOptionST)
         if (__DEV__) console.log(GetOptionST + '/' + params.Username)
-        if (__DEV__) console.log('InsertOptionST DONE')
-
-        const responsePemeriksa  = await fetch(GetPemeriksa, {
-            method: 'GET',
-            headers: {
-                Authorization: token,
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-                }
-        })
-        const jsonPemeriksa = await responsePemeriksa.json(responsePemeriksa)
-        await InsertPemeriksa(jsonPemeriksa)
-        if (__DEV__) console.log(GetPemeriksa)
         if (__DEV__) console.log('InsertOptionST DONE')
 
         const responseOptionSTWakadiv  = await fetch(GetoptionSTWakadiv + '/' + params.KodeUnit + '/' + year, {
