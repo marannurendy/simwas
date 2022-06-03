@@ -3,11 +3,11 @@ import { View, Text, Dimensions, TouchableOpacity, StyleSheet, StatusBar, Image,
 import { Ionicons } from '@expo/vector-icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useNavigation } from '@react-navigation/native'
-import db from '../../config/database';
+import db from '../../../config/database';
 import moment from 'moment'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { Header } from '../assets/layout'
+import { Header } from '../../assets/layout'
 
 const Dimension = Dimensions.get('window')
 
@@ -69,7 +69,7 @@ const SuratTugas = () => {
 
         const data = await SelectDataSuratTugas(query)
 
-        console.log(data)
+        // console.log(data)
         setRole(dt.role)
         setUsername(dt.username)
         setDatast(data)
@@ -88,7 +88,7 @@ const SuratTugas = () => {
         return(
             <View style={{ marginTop: 20, marginHorizontal: 10 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image source={require('../assets/icon/Task-small.png')} />
+                    <Image source={require('../../assets/icon/Task-small.png')} />
                     <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >{role === 'KC' ? ("Data Surprise Visit") : ("Data Surat Tugas")}</Text>
                 </View>
             </View>
@@ -264,9 +264,13 @@ const SuratTugas = () => {
                 <TouchableOpacity style={{ flex: 3, alignItems: 'center', borderBottomStartRadius: 10, borderTopStartRadius: 10, padding: 5, backgroundColor: '#0085E5' }}>
                     <Ionicons name='eye' size={20} color="#FFF" />
                 </TouchableOpacity>
-                <TouchableOpacity style={{ flex: 3, alignItems: 'center', borderBottomEndRadius: 10, borderTopEndRadius: 10, padding: 5, backgroundColor: '#41BA90' }}>
-                    <Ionicons name='pencil' size={20} color="#FFF" />
-                </TouchableOpacity>
+                {data.Approval_Flag === '1' ? (
+                    <View></View>
+                ) : (
+                    <TouchableOpacity onPress={() => Navigation.navigate('EditSuratTugas', {register : data.No})} style={{ flex: 3, alignItems: 'center', borderBottomEndRadius: 10, borderTopEndRadius: 10, padding: 5, backgroundColor: '#41BA90' }}>
+                        <Ionicons name='pencil' size={20} color="#FFF" />
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     )

@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { createDrawerNavigator, DrawerItem, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-import { Home, SuratTugas, InputSuratTugas, Checklist, TindakLanjut, Pembinaan, Login } from '../source'
+import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login } from '../source'
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -51,6 +51,7 @@ const Router = () => {
                 {/* SURAT TUGAS */}
                 <Stack.Screen name='SuratTugas' component={SuratTugas} options={{ headerShown : false }} />
                 <Stack.Screen name='InputSuratTugas' component={InputSuratTugas} options={{ headerShown : false }} />
+                <Stack.Screen name='EditSuratTugas' component={EditSuratTugas} options={{ headerShown : false }} />
 
                 {/* CHECKLIST */}
                 <Stack.Screen name='Checklist' component={Checklist} options={{ headerShown : false }} />

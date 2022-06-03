@@ -41,7 +41,7 @@ db.transaction(tx => {
     // SURAT TUGAS
     tx.executeSql(
         `create table if not exists ListSTSV(
-            Id INTEGER PRIMARY KEY,
+            Id varchar,
             No INTEGER PRIMARY KEY,
             Tgl varchar,
             tglMulai varchar,
@@ -59,6 +59,8 @@ db.transaction(tx => {
             auditor varchar,
             nama_auditor varchar,
             jenisAuditor varchar,
+            cabangDiperiksa varchar,
+            idCabangDiperiksa varchar,
             syncBy varchar,
             type varchar,
             stat varchar)

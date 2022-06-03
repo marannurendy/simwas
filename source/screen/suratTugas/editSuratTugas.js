@@ -1,0 +1,286 @@
+import react, { useEffect, useState } from 'react'
+import { View, StyleSheet, Image, Text, Dimensions, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment'
+import { Header } from '../../assets/layout'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import db from '../../../config/database'
+import { useNavigation } from '@react-navigation/native'
+import DropDownPicker from 'react-native-dropdown-picker';
+const Dimension = Dimensions.get('window')
+
+const EditSuratTugas = (props) => {
+
+    const { register } = props.route.params
+    const Navigation = useNavigation()
+
+    let [tanggalMulai, setTanggalMulai] = useState()
+    let [tanggalSelesai, setTanggalSelesai] = useState()
+    let [cabang, setCabang] = useState()
+    let [userName, setUserName] = useState()
+    let [nama, setNama] = useState()
+    let [jenisAuditor, setJenisAuditor] = useState()
+
+    let [date, setDate] = useState(new Date())
+    let [showStartDate, setShowStartDate] = useState(false)
+    let [showEndDate, setShowEndDate] = useState(false)
+
+    const [open, setOpen] = useState(false);
+    const [value, setValue] = useState();
+    const [items, setItems] = useState([
+        {label: 'cabang test 1', value: 90912},
+        {label: 'cabang test 2', value: 90913},
+    ])
+
+    const selectDataEdit = (querySelect) => ( new Promise((resolve, reject) => {
+        try{
+            db.transaction(
+                tx => {
+                    tx.executeSql(querySelect, [], (tx, results) => {
+                        resolve(results.rows.item(0))
+                    })
+                },function(error) {
+                    reject(error)
+                }
+            )
+        }catch(error){
+            reject(error)
+        }
+    }) )
+
+    useEffect(() => {
+        const unsubscribe  = Navigation.addListener('focus', async () => {
+            fetchData()
+        })
+        return unsubscribe
+    })
+
+    const fetchData = async () => {
+        const userdata = await AsyncStorage.getItem('user_data')
+        let dt = JSON.parse(userdata)
+
+        let query = `SELECT DISTINCT * FROM ListSTSV WHERE `
+        if(dt.role === 'RPM') {
+            query = query + `No = '` + register + `' AND syncBy = '` + dt.username + `'`
+        } else {
+            alert('false')
+        }
+
+        const data = await selectDataEdit(query)
+
+        setTanggalMulai(data.tglMulai)
+        setTanggalSelesai(data.tglSelesai)
+        setValue(Number(data.idCabangDiperiksa))
+        setUserName(data.auditor)
+        setNama(data.nama_auditor)
+        setJenisAuditor(data.jenisAuditor)
+
+        console.log(value)
+    }
+
+    const PickStartDateHandler = (event, date) => {
+        let dateValue = moment(date).format('YYYY-MM-DD');
+
+        setShowStartDate(false)
+        setTanggalMulai(dateValue)
+    }
+
+    const PickEndDateHandler = (event, date) => {
+        let dateValue = moment(date).format('YYYY-MM-DD');
+
+        setShowEndDate(false)
+        setTanggalSelesai(dateValue)
+    }
+
+    const SubmitHandler = () => {
+        let today = moment().format('DD-MM-YYYY')
+
+        let query = `UPDATE ListSTSV SET 
+        tglMulai = ` + tanggalMulai + `,
+        tglSelesai = ` + tanggalSelesai + `,
+        idCabangDiperiksa = ` + value + `,
+        stat = '2'
+        WHERE No = ` + register + `;`
+
+        Alert.alert(
+            "Perhatian",
+            "Apakah anda yakin akan mengedit data surat tugas ?",
+            [
+                {
+                    text:"Batal",
+                },
+                {
+                    text:"Ya",
+                    onPress: () => {
+                        try{
+                            db.transaction(
+                                tx => {
+                                    tx.executeSql(query)
+                                },function(error) {
+                                    alert('Transaction ERROR: ' + error.message);
+                                },function() {
+                                    Alert.alert(
+                                        'Berhasil',
+                                        'Update data berhasil, dengan Nomor Register ' + register,
+                                        [
+                                            {
+                                                text: 'OK',
+                                                onPress: () => {
+                                                    Navigation.goBack()
+                                                }
+                                            }
+                                        ]
+                                    )
+                                }
+                            )
+                        }catch(error){
+                            alert(error.message)
+                        }
+                    }
+                }
+            ]
+        )
+    }
+
+    const Head = () => {
+        return(
+            <View style={{ marginTop: 20, marginHorizontal: 10 }}>
+                <View style={{ flexDirection: 'row' }}>
+                    {/* <Image source={require('../assets/icon/Task-small.png')} /> */}
+                    <Image source={require('../../assets/icon/Task-small.png')} />
+                    <View style={{ flexDirection: 'column' }}>
+                        <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >Edit Surat Tugas</Text>
+                        <Text style={{ marginLeft: 5, fontSize: 14 }}>Nomor Register : {register}</Text>
+                    </View>
+                </View>
+            </View>
+        )
+    }
+
+    const BodyForm = () => {
+        return(
+            <SafeAreaView>
+                <SafeAreaView style={{ marginHorizontal: 10 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Nama Auditor</Text>
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TextInput
+                                value={nama}
+                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10 }}
+                                editable={false}
+                            />
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Username Auditor</Text>
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TextInput
+                                value={userName}
+                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10 }}
+                                editable={false}
+                            />
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Jenis Auditor</Text>
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TextInput
+                                value={jenisAuditor}
+                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10 }}
+                                editable={false}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Tanggal Awal</Text>
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TouchableOpacity onPress={() => setShowStartDate(true)}>
+                                <TextInput
+                                    value={tanggalMulai}
+                                    style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10 }}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        {showStartDate && (
+                            <DateTimePicker
+                                value={date}
+                                mode={'date'}
+                                is24Hour={true}
+                                display="default"
+                                onChange={PickStartDateHandler}
+                                minimumDate={new Date()}
+                            />
+                        )}
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Tanggal Akhir</Text>
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TouchableOpacity onPress={() => setShowStartDate(true)}>
+                                <TextInput
+                                    value={tanggalSelesai}
+                                    style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10 }}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        {showEndDate && (
+                            <DateTimePicker
+                                value={date}
+                                mode={'date'}
+                                is24Hour={true}
+                                display="default"
+                                onChange={PickEndDateHandler}
+                                minimumDate={new Date()}
+                            />
+                        )}
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Nama Cabang</Text>
+                        <View style={{ width: Dimension.width/2 }}>
+                            <DropDownPicker
+                                open={open}
+                                value={value}
+                                items={items}
+                                setOpen={setOpen}
+                                setValue={setValue}
+                                setItems={setItems}
+                                placeholder={'Silahkan pilih'}
+                                searchable={true}
+                                // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
+                                // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
+                            />
+                        </View>
+                    </View>
+                </SafeAreaView>
+            </SafeAreaView>
+        )
+    }
+
+    const ButtonSUbmit = () => {
+        return(
+            <View style={{ marginTop: 50 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'center', marginHorizontal: 50 }}>
+                    <TouchableOpacity onPress={() => Navigation.goBack()} style={{ flex: 3, alignItems: 'center', padding: 10, borderBottomStartRadius: 10, borderTopStartRadius: 10, backgroundColor: '#FF6347' }}>
+                        <Text style={{ fontWeight: 'bold', color: '#FFF' }}>CANCEL</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => SubmitHandler()} style={{ flex: 3, alignItems: 'center', padding:10, borderBottomEndRadius: 10, borderTopEndRadius: 10, backgroundColor: '#0085E5' }}>
+                        <Text style={{ fontWeight: 'bold', color: '#FFF' }}>UPDATE</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
+    return(
+        <View>
+            <Header />
+            <Head />
+            <BodyForm />
+            <ButtonSUbmit />
+        </View>
+    )
+}
+
+export default EditSuratTugas

@@ -2,15 +2,18 @@ import react, { useState, useEffect } from 'react'
 import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, TextInput, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { Header } from '../assets/layout'
+import { Header } from '../../assets/layout';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import db from '../../config/database';
+import db from '../../../config/database';
+import { useNavigation } from '@react-navigation/native';
 
 const Dimension = Dimensions.get('window')
 
 const InputSuratTugas = () => {
+
+    const Navigation = useNavigation()
 
     let [date, setDate] = useState(new Date())
     let [showStartDate, setShowStartDate] = useState(false)
@@ -28,8 +31,8 @@ const InputSuratTugas = () => {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [items, setItems] = useState([
-        {label: 'cabang test 1', value: '90912'},
-        {label: 'cabang test 2', value: '90913'},
+        {label: 'cabang test 1', value: 90912},
+        {label: 'cabang test 2', value: 90913},
     ])
 
     const [openEntries, setOpenEntries] = useState(false);
@@ -96,9 +99,11 @@ const InputSuratTugas = () => {
                 type : dtType,
             }
 
+            console.log(value)
+
             Alert.alert(
                 "Perhatian",
-                "Apakah anda ingin menyimpan Surat Tugas ?",
+                `Apakah anda ingin menyimpan Surat Tugas ?`,
                 [
                     {
                         text: "BATAL",
@@ -168,7 +173,9 @@ const InputSuratTugas = () => {
                                     tglMulai,
                                     tglSelesai,
                                     auditor,
+                                    nama_auditor,
                                     jenisAuditor,
+                                    idCabangDiperiksa,
                                     tahun,
                                     syncBy,
                                     type,
@@ -182,7 +189,11 @@ const InputSuratTugas = () => {
                                     + "','"
                                     + data.auditor
                                     + "','"
+                                    + data.nama_auditor
+                                    + "','"
                                     + data.jenisAuditor
+                                    + "','"
+                                    + data.cabang
                                     + "','"
                                     + moment().format('YYYY')
                                     + "','"
@@ -194,16 +205,30 @@ const InputSuratTugas = () => {
                                     + "');"
                             }
 
-                            // console.log(query)
+                            let insertedID = ''
                             
                             try{
                                 db.transaction(
                                     tx => {
-                                        tx.executeSql(query)
+                                        tx.executeSql(query, [], (tx, results) => {
+                                            let a  = results.insertId
+                                            insertedID = a
+                                        })
                                     },function(error) {
                                         alert('Transaction ERROR: ' + error.message);
                                     },function() {
-                                        alert('input data berhasil');
+                                        Alert.alert(
+                                            'Berhasil',
+                                            'Input data berhasil, dengan Nomor Register ' + insertedID,
+                                            [
+                                                {
+                                                    text: 'OK',
+                                                    onPress: () => {
+                                                        Navigation.goBack()
+                                                    }
+                                                }
+                                            ]
+                                        )
                                     }
                                 )
                             }catch(error){
@@ -221,7 +246,8 @@ const InputSuratTugas = () => {
         return(
             <View style={{ marginTop: 20, marginHorizontal: 10 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image source={require('../assets/icon/Task-small.png')} />
+                    {/* <Image source={require('../assets/icon/Task-small.png')} /> */}
+                    <Image source={require('../../assets/icon/Task-small.png')} />
                     <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >{role === 'KC' ? ('Add Surprise Visit') : ('Input Surat Tugas')}</Text>
                 </View>
             </View>
@@ -290,9 +316,9 @@ const InputSuratTugas = () => {
                                     setValue={setValue}
                                     setItems={setItems}
                                     placeholder={'Silahkan pilih'}
+                                    searchable={true}
                                     // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
                                     // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
-
                                 />
                             </View>
                         </View>
@@ -352,9 +378,6 @@ const InputSuratTugas = () => {
                                     setValue={setValue}
                                     setItems={setItems}
                                     placeholder={'Silahkan pilih'}
-                                    // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
-                                    // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
-
                                 />
                             </View>
                         </View>
