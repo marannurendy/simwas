@@ -1,5 +1,5 @@
 import react, { useState, useEffect } from 'react'
-import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, TextInput, Alert } from 'react-native'
+import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, TextInput, Alert, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Header } from '../../assets/layout';
@@ -8,6 +8,7 @@ import moment from 'moment'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import db from '../../../config/database';
 import { useNavigation } from '@react-navigation/native';
+import { GetMasterCekList } from '../../../config/conf';
 
 const Dimension = Dimensions.get('window')
 
@@ -28,30 +29,71 @@ const InputSuratTugas = () => {
     let [jenisPemeriksaan, setJenisPemeriksaan] = useState()
     let [type, setType] = useState()
 
+    let [loading, setLoading] = useState(false)
+
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
-    const [items, setItems] = useState([
-        {label: 'cabang test 1', value: 90912},
-        {label: 'cabang test 2', value: 90913},
-    ])
+    // const [items, setItems] = useState([
+    //     {label: 'cabang test 1', value: 90912},
+    //     {label: 'cabang test 2', value: 90913},
+    // ])
+    const [items, setItems] = useState([])
 
     const [openEntries, setOpenEntries] = useState(false);
     const [valueEntries, setValueEntries] = useState(5);
     const [itemsEntries, setItemsEntries] = useState([])
 
     useEffect(() => {
-        fetchData()
+        const unsubscribe  = Navigation.addListener('focus', async () => {
+            fetchData()
+        })
+        return unsubscribe
     })
 
     const fetchData = async () => {
+        setLoading(true)
+
         const syncStatus = await AsyncStorage.getItem('user_data')
         let dt = JSON.parse(syncStatus)
 
+        const masterData = await getMaster()
+
+        setItems(masterData)
         setUsername(dt.username)
         setNama(dt.nama)
         setRole(dt.role)
 
+        setLoading(false)
+
     }
+
+    const getMaster = () => ((new Promise((resolve, reject) => {
+        let query = 'SELECT * FROM CabangDiperiksa'
+        try{
+            db.transaction(
+                tx => {
+                    tx.executeSql(query, [], (tx, results) => {
+                        let a = results.rows.length
+                        let arr = []
+
+                        for(let i = 0; i < a; i++) {
+                            let newdt = results.rows.item(i)
+
+                            newdt['label'] = newdt.CabangID + '-' + newdt.NamaCabang
+                            newdt['value'] = newdt.CabangID
+                            arr.push(newdt)
+                        }
+                        console.log(arr)
+                        resolve(arr)
+                    },function(error){
+                        console.log(error)
+                    })
+                }
+            )
+        }catch(error){
+            reject(error.message)
+        }
+    })))
 
     const PickStartDateHandler = (event, date) => {
         let dateValue = moment(date).format('YYYY-MM-DD');
@@ -257,6 +299,11 @@ const InputSuratTugas = () => {
     const BodyForm = () => {
         return(
             <View style={{ marginTop: 40 }}>
+                {loading && 
+                    <View style={styles.loading} >
+                        <ActivityIndicator size={'large'} color="#71CDF1" />
+                    </View>
+                }
                 {role === 'KA' || role === 'RPM' ? (
                     <View style={{ marginHorizontal: 10 }}>
 
@@ -324,7 +371,7 @@ const InputSuratTugas = () => {
                         </View>
 
                     </View>
-                ) : (
+                ) : role === 'KC' ? (
                     <View style={{ marginHorizontal: 10 }}>
 
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
@@ -383,6 +430,8 @@ const InputSuratTugas = () => {
                         </View>
 
                     </View>
+                ) : (
+                    <View></View>
                 )}
             </View>
         )
@@ -416,5 +465,15 @@ const InputSuratTugas = () => {
 export default InputSuratTugas
 
 const styles = StyleSheet.create({
-
+    loading: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        opacity: 0.7,
+        backgroundColor: 'black',
+        justifyContent: 'center',
+        alignItems: 'center'
+    }
 })

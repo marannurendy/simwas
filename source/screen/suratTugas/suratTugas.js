@@ -1,11 +1,12 @@
 import react, { useState, useEffect, useMemo } from 'react'
-import { View, Text, Dimensions, TouchableOpacity, StyleSheet, StatusBar, Image, TextInput, ScrollView, FlatList, SafeAreaView } from 'react-native'
+import { View, Text, Dimensions, TouchableOpacity, StyleSheet, StatusBar, Image, TextInput, ScrollView, FlatList, SafeAreaView, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useNavigation } from '@react-navigation/native'
 import db from '../../../config/database';
 import moment from 'moment'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { PostSuratTugas } from '../../../config/conf';
 
 import { Header } from '../../assets/layout'
 
@@ -43,7 +44,8 @@ const SuratTugas = () => {
     let [role, setRole] = useState()
     let [datast, setDatast] = useState([])
     let [dt, setDt] = useState([])
-    let [isLoaded, setIsLoaded] = useState(false)
+
+    let [loading, setLoading] = useState(false)
 
     useEffect(() => {
         const unsubscribe  = Navigation.addListener('focus', async () => {
@@ -53,6 +55,8 @@ const SuratTugas = () => {
     }, [])
 
     const fetchData = async () => {
+        setLoading(true)
+
         const syncStatus = await AsyncStorage.getItem('user_data')
         let dt = JSON.parse(syncStatus)
 
@@ -74,6 +78,8 @@ const SuratTugas = () => {
         setUsername(dt.username)
         setDatast(data)
         setDt(data)
+
+        setLoading(false)
     }
 
     const [open, setOpen] = useState(false);
@@ -83,6 +89,96 @@ const SuratTugas = () => {
         {label: '2021', value: '2021'},
         {label: 'All', value: ''}
     ])
+
+    const SyncHandler = async () => {
+        const data = await getDataSync()
+        const token = await AsyncStorage.getItem('token')
+
+        console.log(data)
+
+        const timeOut = (milisecond, promise) => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(new Error("Request Timeout, perhatikan jaringan anda lalu coba sync beberapa saat lagi."))
+                }, milisecond)
+                promise.then(resolve, reject)
+            })
+        }
+
+        try{
+            timeOut(60000, fetch(PostSuratTugas, {
+                method: 'POST',
+                headers: {
+                    Authorization: token,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                    },
+                body: JSON.stringify(data)
+            }))
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson)
+
+            }).catch((error) => {
+                console.log(error.message)
+                // setLoading(false)
+                // flashNotification("Alert", "Data gagal di proses, Coba lagi beberapa saat. \nError : " + error.message, "#ff6347", "#fff")
+            })
+        }catch(error){
+            console.log(error.message)
+            // console.log("disini")
+            // setLoading(false)
+            // flashNotification("Alert", "Data gagal di proses, Coba lagi beberapa saat. Error : " + error, "#ff6347", "#fff")
+        }
+    }
+
+    const getDataSync = () => ( new Promise((resolve, reject) => {
+        let queryCek = `SELECT * FROM ListSTSV WHERE syncBy = '` + username + `' AND stat IS NOT NULL`
+        let queryGet = `SELECT 
+                        cast(No as text) as NoST,
+                        Tgl,
+                        tglMulai,
+                        tglSelesai,
+                        CASE WHEN Jenis_Pemeriksaan IS NULL THEN '' ELSE Jenis_Pemeriksaan END as jenis_pemeriksaan,
+                        CASE WHEN Approval_By IS NULL THEN '' ELSE Approval_By END as approval_by,
+                        CASE WHEN Approval_Date IS NULL THEN '' ELSE Approval_Date END as approval_date,
+                        CASE WHEN Approval_Flag IS NULL THEN '' ELSE Approval_Flag END as approval_flag,
+                        CASE WHEN Approval_Ket IS NULL THEN '' ELSE Approval_Ket END as approval_ket,
+                        auditor,
+                        nama_auditor,
+                        CASE WHEN jenisAuditor IS NULL THEN '' ELSE jenisAuditor END as jenisAuditor,
+                        idCabangDiperiksa as cabang,
+                        type,
+                        stat
+                        FROM ListSTSV WHERE syncBy = '` + username + `' AND stat IS NOT NULL`
+
+        try{
+            db.transaction(
+                tx => {
+                    tx.executeSql(queryGet, [], (tx, results) => {
+                        let a = results.rows.length
+                        let arr = []
+                        
+                        if(a > 0){
+                            for(let i = 0; i < a; i++) {
+                                arr.push(results.rows.item(i))
+                            }
+                            resolve(arr)
+                        }else{
+                            alert(error.message)
+                            reject(error.message)
+                        }
+                    },function(error) {
+                        reject(error)
+                    }
+                    )
+                }
+            )
+        }catch(error){
+            alert(error.message)
+            reject(error.message)
+        }
+    }) )
 
     const Head = () => {
         return(
@@ -98,9 +194,13 @@ const SuratTugas = () => {
     const AddSuratTugasButton = () => {
         return(
             <View style={{ marginVertical: 20, marginHorizontal: 10 }}>
-                <TouchableOpacity onPress={() => Navigation.navigate('InputSuratTugas')} style={{ paddingVertical: 3, width: Dimension.width/2.5, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5' }}>
-                    <Ionicons name="add" size={24} color="#FFF" />
+                <TouchableOpacity onPress={() => Navigation.navigate('InputSuratTugas')} style={{ paddingVertical: 3, width: Dimension.width/2.5, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5', marginBottom: 5 }}>
+                    <Ionicons name="add" size={24} color="#FFF" style={{ marginHorizontal: 5 }} />
                     <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{role === 'KC' ? ("Surprise Visit") : ("Surat Tugas")}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => SyncHandler()} style={{ paddingVertical: 3, width: Dimension.width/2.5, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#41BA90' }}>
+                    <Ionicons name="cloud-upload" size={20} color="#FFF" style={{ marginHorizontal: 5 }} />
+                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Sync</Text>
                 </TouchableOpacity>
             </View>
         )
@@ -121,34 +221,9 @@ const SuratTugas = () => {
                                 setValue={setValue}
                                 setItems={setItems}
                                 placeholder={'Silahkan pilih'}
-                                // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
-                                // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
-
                             />
                         </View>
                     </View>
-
-                    {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
-                        <Text>Show</Text>
-                        <View style={{ width: Dimension.width/2 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <View style={{ width: Dimension.width/3 }}>
-                                    <DropDownPicker
-                                        open={openEntries}
-                                        value={valueEntries}
-                                        items={itemsEntries}
-                                        setOpen={setOpenEntries}
-                                        setValue={setValueEntries}
-                                        setItems={setItemsEntries}
-                                        placeholder={valueEntries}
-                                        // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
-                                        // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
-                                    />
-                                </View>
-                                <Text>Entries</Text>
-                            </View>
-                        </View>
-                    </View> */}
 
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }>
                         <Text>Search</Text>
@@ -209,6 +284,11 @@ const SuratTugas = () => {
     const ListBody = () => {
         return(
             <View style={{ flex: 1 }}>
+                {loading && 
+                    <View style={styles.loading} >
+                        <ActivityIndicator size={'large'} color="#0085E5" />
+                    </View>
+                }
                 <SafeAreaView style={{ flex: 1 }}>
                     {datast === 'null'}
                     <FlatList 
@@ -329,5 +409,15 @@ const styles = StyleSheet.create({
     headDataList: {
         alignItems: 'center',
         width: Dimension.width/3.5
+    },
+    loading: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        opacity: 0.7,
+        justifyContent: 'center',
+        alignItems: 'center'
     }
 })
