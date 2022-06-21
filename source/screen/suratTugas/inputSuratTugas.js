@@ -33,6 +33,7 @@ const InputSuratTugas = () => {
 
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
+    const [label, setLabel] = useState()
     // const [items, setItems] = useState([
     //     {label: 'cabang test 1', value: 90912},
     //     {label: 'cabang test 2', value: 90913},
@@ -83,10 +84,11 @@ const InputSuratTugas = () => {
                             newdt['value'] = newdt.CabangID
                             arr.push(newdt)
                         }
-                        console.log(arr)
+                        // console.log(arr)
                         resolve(arr)
                     },function(error){
-                        console.log(error)
+                        alert(error)
+                        reject("error")
                     })
                 }
             )
@@ -109,6 +111,10 @@ const InputSuratTugas = () => {
 
         setShowEndDate(false)
         setEndDate(dateValue)
+    }
+
+    const onSelect = (item) => {
+        setLabel(item.NamaCabang)
     }
 
     const SubmitHandler = () => {
@@ -139,6 +145,7 @@ const InputSuratTugas = () => {
                 tglMulai : startDate,
                 tglSelesai : endDate,
                 type : dtType,
+                keterangan : label
             }
 
             console.log(value)
@@ -184,33 +191,7 @@ const InputSuratTugas = () => {
                                     + "','"
                                     + "1"
                                     + "');"
-                            } else if (role === 'KC') {
-                                query = query + `Tgl,
-                                    tglMulai,
-                                    tglSelesai,
-                                    auditor,
-                                    jenisAuditor,
-                                    tahun,
-                                    type,
-                                    stat) values `
-                                    + "('"
-                                    + data.Tgl
-                                    + "','"
-                                    + data.tglMulai
-                                    + "','"
-                                    + data.tglSelesai
-                                    + "','"
-                                    + data.auditor
-                                    + "','"
-                                    + data.jenisAuditor
-                                    + "','"
-                                    + moment(data.Tgl).format('YYYY')
-                                    + "','"
-                                    + data.type
-                                    + "','"
-                                    + "1"
-                                    + "');"
-                            } else if (role === 'RPM') {
+                            } else if (role === 'PPM') {
                                 query = query + `Tgl,
                                     tglMulai,
                                     tglSelesai,
@@ -218,6 +199,7 @@ const InputSuratTugas = () => {
                                     nama_auditor,
                                     jenisAuditor,
                                     idCabangDiperiksa,
+                                    keterangan,
                                     tahun,
                                     syncBy,
                                     type,
@@ -236,6 +218,46 @@ const InputSuratTugas = () => {
                                     + data.jenisAuditor
                                     + "','"
                                     + data.cabang
+                                    + "','"
+                                    + data.keterangan
+                                    + "','"
+                                    + moment().format('YYYY')
+                                    + "','"
+                                    + data.auditor
+                                    + "','"
+                                    + data.type
+                                    + "','"
+                                    + "1"
+                                    + "');"
+                            } else if (role === 'RPM') {
+                                query = query + `Tgl,
+                                    tglMulai,
+                                    tglSelesai,
+                                    auditor,
+                                    nama_auditor,
+                                    jenisAuditor,
+                                    idCabangDiperiksa,
+                                    keterangan,
+                                    tahun,
+                                    syncBy,
+                                    type,
+                                    stat) values `
+                                    + "('"
+                                    + data.Tgl
+                                    + "','"
+                                    + data.tglMulai
+                                    + "','"
+                                    + data.tglSelesai
+                                    + "','"
+                                    + data.auditor
+                                    + "','"
+                                    + data.nama_auditor
+                                    + "','"
+                                    + data.jenisAuditor
+                                    + "','"
+                                    + data.cabang
+                                    + "','"
+                                    + data.keterangan
                                     + "','"
                                     + moment().format('YYYY')
                                     + "','"
@@ -304,7 +326,7 @@ const InputSuratTugas = () => {
                         <ActivityIndicator size={'large'} color="#71CDF1" />
                     </View>
                 }
-                {role === 'KA' || role === 'RPM' ? (
+                {role === 'KA' || role === 'RPM' || role === 'PPM' ? (
                     <View style={{ marginHorizontal: 10 }}>
 
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
@@ -364,6 +386,7 @@ const InputSuratTugas = () => {
                                     setItems={setItems}
                                     placeholder={'Silahkan pilih'}
                                     searchable={true}
+                                    onSelectItem={(item) => onSelect(item)} 
                                     // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
                                     // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
                                 />

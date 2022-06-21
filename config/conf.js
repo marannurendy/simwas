@@ -56,6 +56,7 @@ let GetListJawabanCL = `${baseChecklist}/GetListJawabanCL`
 let GetListKodeCL = `${baseChecklist}/GetListKodeCL`
 let GetListKodeCLKC = `${baseChecklist}/GetListKodeCLKC`
 let GetMasterCekList = `${baseChecklist}/GetMasterCekList`
+let GetListInputanCeklist = `${baseChecklist}/GetListInputanCeklist`
 let GetOptionSTCL = `${baseChecklist}/GetOptionSTCL`
 let GetOptionSTCLAM = `${baseChecklist}/GetOptionSTCLAM`
 let GetOptionSTCLKC = `${baseChecklist}/GetOptionSTCLKC`
@@ -92,5 +93,6 @@ export {
     GetOptionSTCLKC,
     PostNoLapAM,
     PostSuratTugas,
-    PostCheckList
+    PostCheckList,
+    GetListInputanCeklist
 }

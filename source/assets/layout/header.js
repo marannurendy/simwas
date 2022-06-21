@@ -56,7 +56,7 @@ const Header = () => {
                         <View>
                             <Text style={{ fontSize: 17, fontWeight: 'bold' }}>{nama}</Text>
                             <Text>{username} - {positionName}</Text>
-                            <Text>{kodeUnit}</Text>
+                            <Text>{role} - {kodeUnit}</Text>
                         </View>
                         {Route.name == 'Front Home' ? (
                         <View></View>) : 

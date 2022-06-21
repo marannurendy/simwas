@@ -56,7 +56,8 @@ const Login = () => {
                             username: responseJson.data.username,
                             user_id: responseJson.data.user_id,
                             position_name: responseJson.data.position_name,
-                            role: responseJson.data.role
+                            role: responseJson.data.role,
+                            bisnis: responseJson.data.bisnis
                         }
 
                         console.log(responseJson.token)

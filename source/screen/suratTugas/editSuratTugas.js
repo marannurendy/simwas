@@ -20,6 +20,7 @@ const EditSuratTugas = (props) => {
     let [userName, setUserName] = useState()
     let [nama, setNama] = useState()
     let [jenisAuditor, setJenisAuditor] = useState()
+    let [stat, setStat] = useState()
 
     let [role, setRole] = useState()
 
@@ -30,6 +31,7 @@ const EditSuratTugas = (props) => {
     let [loading, setLoading] = useState(false)
 
     const [open, setOpen] = useState(false);
+    const [label, setLabel] = useState()
     const [value, setValue] = useState();
     // const [items, setItems] = useState([
     //     {label: 'cabang test 1', value: 90912},
@@ -78,7 +80,7 @@ const EditSuratTugas = (props) => {
 
         const data = await selectDataEdit(query)
 
-        console.log(data.idCabangDiperiksa)
+        // console.log(data.stat)
 
         setTanggalMulai(data.tglMulai)
         setTanggalSelesai(data.tglSelesai)
@@ -87,6 +89,7 @@ const EditSuratTugas = (props) => {
         setNama(data.nama_auditor)
         setJenisAuditor(data.jenisAuditor)
         setRole(dt.role)
+        setStat(data.stat)
 
         setLoading(false)
     }
@@ -107,7 +110,7 @@ const EditSuratTugas = (props) => {
                             newdt['value'] = newdt.CabangID
                             arr.push(newdt)
                         }
-                        console.log(arr)
+                        // console.log(arr)
                         resolve(arr)
                     },function(error){
                         console.log(error)
@@ -142,8 +145,18 @@ const EditSuratTugas = (props) => {
         tglMulai = '` + tanggalMulai + `',
         tglSelesai = '` + tanggalSelesai + `',
         idCabangDiperiksa = ` + value + `,
+        keterangan = '` + label + `',
         stat = '2'
         WHERE No = ` + register + `;`
+
+        if(stat === '1') {
+            query = `UPDATE ListSTSV SET 
+                tglMulai = '` + tanggalMulai + `',
+                tglSelesai = '` + tanggalSelesai + `',
+                idCabangDiperiksa = ` + value + `,
+                keterangan = '` + label + `'
+                WHERE No = ` + register + `;`
+        }
 
         Alert.alert(
             "Perhatian",
@@ -298,6 +311,7 @@ const EditSuratTugas = (props) => {
                                     setItems={setItems}
                                     placeholder={'Silahkan pilih'}
                                     searchable={true}
+                                    onSelectItem={(item) => onSelect(item)}
                                     // dropDownContainerStyle={{marginLeft: 30, marginTop: 25, borderColor: "#0E71C4", width: Dimension.width/2, borderWidth: 2}}
                                     // style={{ width: Dimension.width/2.5, borderRadius: 10 }}
                                 />
@@ -310,6 +324,10 @@ const EditSuratTugas = (props) => {
 
             </SafeAreaView>
         )
+    }
+
+    const onSelect = (param) => {
+        setLabel(param.NamaCabang)
     }
 
     const ButtonSUbmit = () => {

@@ -1,11 +1,14 @@
 import react from 'react'
-import { View, Text } from 'react-native'
+import { View, Text, Alert } from 'react-native'
 import { NavigationContainer, useNavigation } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import { createDrawerNavigator, DrawerItem, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login } from '../source'
+import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login, InputChecklist } from '../source'
+import { DrawerLayoutAndroid } from 'react-native-gesture-handler'
+
+import db from '../config/database'
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -22,11 +25,48 @@ const Router = () => {
     
             Navigation.replace('Login')
         }
+        const ClearData = () => {
+            Alert.alert(
+                "Clear Data Alert",
+                "Clear Data akan menghapus semua data, termasuk data yang sudah diinput. Apakah Anda yakin untuk melanjutkan?",
+                [
+                    { text: "OK", onPress: () => {
+                        db.transaction(
+                            tx => {
+                                tx.executeSql('DELETE FROM ListKodeCLKA')
+                                tx.executeSql('DELETE FROM OptionSVKC')
+                                tx.executeSql('DELETE FROM OptionSTAM')
+                                tx.executeSql('DELETE FROM ListSTSV')
+                                tx.executeSql('DELETE FROM CabangDiperiksa')
+                                tx.executeSql('DELETE FROM ListPPM')
+                                tx.executeSql('DELETE FROM ListRPM')
+                                tx.executeSql('DELETE FROM OptionST')
+                                tx.executeSql('DELETE FROM Pemeriksa')
+                                tx.executeSql('DELETE FROM OptionSTWAKADIF')
+                                tx.executeSql('DELETE FROM MasterKategori')
+                                tx.executeSql('DELETE FROM SubKategori')
+                                tx.executeSql('DELETE FROM TipePemeriksaan')
+                                tx.executeSql('DELETE FROM Pertanyaan')
+                                tx.executeSql('DELETE FROM Jawaban')
+                                tx.executeSql('DELETE FROM ListChecklist')
+                                tx.executeSql('DELETE FROM ListSTChecklist')
+                            },function(error) {
+                                alert('Transaction ERROR: ' + error.message)
+                            }, async function() {
+                                Logout()
+                            }
+                        )
+                    }}
+                ],
+                { cancelable: true }
+            );
+        }
 
         return(
             <DrawerContentScrollView {...props}>
                 <DrawerItemList {...props} />
                 <DrawerItem label={'Logout'} onPress={() => Logout()} />
+                <DrawerItem label={'ClearData'} onPress={() => ClearData()} />
             </DrawerContentScrollView>
         )
     }
@@ -55,6 +95,7 @@ const Router = () => {
 
                 {/* CHECKLIST */}
                 <Stack.Screen name='Checklist' component={Checklist} options={{ headerShown : false }} />
+                <Stack.Screen name='InputChecklist' component={InputChecklist} options={{ headerShown : false }} />
 
                 {/* TINDAKLANJUT */}
                 <Stack.Screen name='TindakLanjut' component={TindakLanjut} options={{ headerShown : false }} />

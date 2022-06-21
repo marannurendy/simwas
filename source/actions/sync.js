@@ -10,12 +10,15 @@ import {
     GetListRPM,
     GetOptionST,
     GetPemeriksa,
-    GetoptionSTWakadiv } from "../../config/conf"
+    GetoptionSTWakadiv,
+    GetMasterCekList,
+    GetListInputanCeklist } from "../../config/conf"
 import moment from 'moment'
 
 const getSyncData = (params) => new Promise((resolve) => {
 
-    const year = moment().format('YYYY')
+    // const year = moment().format('YYYY')
+    const year = '2021'
 
     const truncat = (reject, source) => {
         if (__DEV__) console.log('ACTIONS GET SYNC DATA TRUNCAT LOADED');
@@ -40,7 +43,10 @@ const getSyncData = (params) => new Promise((resolve) => {
         )
     }
 
+    //SURAT TUGAS
+
     const InsertST = (responseJson) => new Promise ((resolve, reject) => {
+        console.log(responseJson)
         try{
             if(responseJson.data !== null) {
                 let query = `INSERT OR IGNORE INTO ListSTSV (
@@ -188,7 +194,7 @@ const getSyncData = (params) => new Promise((resolve) => {
                 return;
             }
         }catch(error){
-            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERRORn InsertSV:', error)
             reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
             return
         }
@@ -357,124 +363,50 @@ const getSyncData = (params) => new Promise((resolve) => {
     })
 
     const InsertCabangDiperiksa = (responseJson) => new Promise ((resolve, reject) => {
-        try{
-            if(responseJson.data !== null) {
-                let query = `INSERT OR IGNORE INTO CabangDiperiksa (
-                    CabangID,
-                    NamaCabang) values `
-                for(let i = 0; i < responseJson.data.length; i++ ) {
-                    query = query + "('"
-                    + responseJson.data[i].CabangID
-                    + "','"
-                    + responseJson.data[i].NamaCabang
-                    + "')"
-
-                    if (i != responseJson.data.length - 1) query = query + ","
-                }
-                query = query + ";"
-
-                db.transaction(
-                    tx => {
-                        tx.executeSql(query)
-                    }, function(error) {
-                        reject('GAGAL INPUT DATA CabangDiperiksa')
-                    }, function() {
-                        resolve('BERHASIL')
+        if(responseJson.responseCode === 200) {
+            try{
+                if(responseJson.data !== null) {
+                    let query = `INSERT OR IGNORE INTO CabangDiperiksa (
+                        CabangID,
+                        NamaCabang) values `
+                    for(let i = 0; i < responseJson.data.length; i++ ) {
+                        query = query + "('"
+                        + responseJson.data[i].CabangID
+                        + "','"
+                        + responseJson.data[i].NamaCabang
+                        + "')"
+    
+                        if (i != responseJson.data.length - 1) query = query + ","
                     }
-                )
+                    query = query + ";"
+    
+                    db.transaction(
+                        tx => {
+                            tx.executeSql(query)
+                        }, function(error) {
+                            reject('GAGAL INPUT DATA CabangDiperiksa')
+                        }, function() {
+                            resolve('BERHASIL')
+                        }
+                    )
+                    return
+                } else {
+                    resolve('BERHASIL');
+                    return;
+                }
+            }catch(error){
+                console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR InsertCabangDiperiksa:', error)
+                reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
                 return
-            } else {
-                resolve('BERHASIL');
-                return;
             }
-        }catch(error){
-            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+        } else {
             reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
             return
         }
+        
     })
 
     const InsertListPPM = (responseJson) => new Promise ((resolve, reject) => {
-        try{
-            if(responseJson.data !== null) {
-                let query = `INSERT OR IGNORE INTO ListPPM (
-                    Approval_By,
-                    Approval_Date,
-                    Approval_Flag,
-                    Approval_Ket,
-                    IdST,
-                    JenisAuditor,
-                    Jenis_Pemeriksaan,
-                    Keterangan,
-                    M_RegionId,
-                    NoST,
-                    Tahun,
-                    Tanggal,
-                    TanggalMulai,
-                    TanggalSelesai,
-                    auditor,
-                    nama_auditor) values `
-                for(let i = 0; i < responseJson.data.length; i++ ) {
-                    query = query + "('"
-                    + responseJson.data[i].Approval_By
-                    + "','"
-                    + responseJson.data[i].Approval_Date
-                    + "','"
-                    + responseJson.data[i].Approval_Flag
-                    + "','"
-                    + responseJson.data[i].Approval_Ket
-                    + "','"
-                    + responseJson.data[i].IdST
-                    + "','"
-                    + responseJson.data[i].JenisAuditor
-                    + "','"
-                    + responseJson.data[i].Jenis_Pemeriksaan
-                    + "','"
-                    + responseJson.data[i].Keterangan
-                    + "','"
-                    + responseJson.data[i].M_RegionId
-                    + "','"
-                    + responseJson.data[i].NoST
-                    + "','"
-                    + responseJson.data[i].Tahun
-                    + "','"
-                    + responseJson.data[i].Tanggal
-                    + "','"
-                    + responseJson.data[i].TanggalMulai
-                    + "','"
-                    + responseJson.data[i].TanggalSelesai
-                    + "','"
-                    + responseJson.data[i].auditor
-                    + "','"
-                    + responseJson.data[i].nama_auditor
-                    + "')"
-
-                    if (i != responseJson.data.length - 1) query = query + ","
-                }
-                query = query + ";"
-
-                db.transaction(
-                    tx => {
-                        tx.executeSql(query)
-                    }, function(error) {
-                        reject('GAGAL INPUT DATA ListPPM')
-                    }, function() {
-                        resolve('BERHASIL')
-                    }
-                )
-                return
-            } else {
-                resolve('BERHASIL');
-                return;
-            }
-        }catch(error){
-            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
-            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
-            return
-        }
-    })
-
-    const InsertListRPM = (responseJson) => new Promise ((resolve, reject) => {
         try{
             if(responseJson.data !== null) {
                 let query = `INSERT OR IGNORE INTO ListSTSV (
@@ -484,6 +416,7 @@ const getSyncData = (params) => new Promise((resolve) => {
                     tglMulai,
                     tglSelesai,
                     keterangan,
+                    idCabangDiperiksa,
                     m_RegionId,
                     tahun,
                     Jenis_Pemeriksaan,
@@ -509,6 +442,97 @@ const getSyncData = (params) => new Promise((resolve) => {
                     + responseJson.data[i].TanggalSelesai
                     + "','"
                     + responseJson.data[i].Keterangan
+                    + "','"
+                    + responseJson.data[i].Cabang
+                    + "','"
+                    + responseJson.data[i].M_RegionId
+                    + "','"
+                    + responseJson.data[i].Tahun
+                    + "','"
+                    + responseJson.data[i].Jenis_Pemeriksaan
+                    + "','"
+                    + responseJson.data[i].Approval_By
+                    + "','"
+                    + responseJson.data[i].Approval_Date
+                    + "','"
+                    + responseJson.data[i].Approval_Flag
+                    + "','"
+                    + responseJson.data[i].Approval_Ket
+                    + "','"
+                    + responseJson.data[i].auditor
+                    + "','"
+                    + responseJson.data[i].nama_auditor
+                    + "','"
+                    + responseJson.data[i].JenisAuditor
+                    + "','"
+                    + params.Username
+                    + "','"
+                    + "3"
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) query = query + ","
+                }
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('GAGAL INPUT DATA ListPPM')
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL');
+                return;
+            }
+        }catch(error){
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR InsertListPPM:', error)
+            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
+            return
+        }
+    })
+
+    const InsertListRPM = (responseJson) => new Promise ((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListSTSV (
+                    Id,
+                    No,
+                    Tgl,
+                    tglMulai,
+                    tglSelesai,
+                    keterangan,
+                    idCabangDiperiksa,
+                    m_RegionId,
+                    tahun,
+                    Jenis_Pemeriksaan,
+                    Approval_By,
+                    Approval_Date,
+                    Approval_Flag,
+                    Approval_Ket,
+                    auditor,
+                    nama_auditor,
+                    jenisAuditor,
+                    syncBy,
+                    type) values `
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    query = query + "('"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].Tanggal
+                    + "','"
+                    + responseJson.data[i].TanggalMulai
+                    + "','"
+                    + responseJson.data[i].TanggalSelesai
+                    + "','"
+                    + responseJson.data[i].Keterangan
+                    + "','"
+                    + responseJson.data[i].Cabang
                     + "','"
                     + responseJson.data[i].M_RegionId
                     + "','"
@@ -554,7 +578,7 @@ const getSyncData = (params) => new Promise((resolve) => {
                 return;
             }
         }catch(error){
-            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR InsertListRPM:', error)
             reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
             return
         }
@@ -619,7 +643,7 @@ const getSyncData = (params) => new Promise((resolve) => {
                 return;
             }
         }catch(error){
-            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR InsertOptionST:', error)
             reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
             return
         }
@@ -740,6 +764,254 @@ const getSyncData = (params) => new Promise((resolve) => {
         }
     })
 
+    //CHECKLIST
+    const InsertMasterChecklist = (responseJson) => (new Promise((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let queryMasterKategori = `INSERT OR IGNORE INTO MasterKategori (
+                    IdKategori,
+                    IdTipeCeklist,
+                    Nama_Kategori,
+                    Type_Ceklist,
+                    id_bisnis,
+                    nama_bisnis ) values `
+                let queryMasterSubKategori = `INSERt OR IGNORE INTO SubKategori (
+                    IdKategori,
+                    IdSubKategori,
+                    Nama_Sub_Kategori ) values `
+                let queryMasterTipePemeriksaan = `INSERT OR IGNORE INTO TipePemeriksaan (
+                    Id,
+                    Tipe_Ceklist ) values `
+                let queryMasterPertanyaan = `INSERT OR IGNORE INTO Pertanyaan (
+                    IdKategori,
+                    IdPertanyaan,
+                    IdSubKategori,
+                    Pertanyaan ) values `
+                let queryMasterJawaban = `INSERT OR IGNORE INTO Jawaban (
+                    IdJawaban,
+                    Jawaban ) values `
+
+                for(let a = 0; a < responseJson.data.Kategori.length; a++) {
+                    queryMasterKategori = queryMasterKategori + "('"
+                    + responseJson.data.Kategori[a].IdKategori
+                    + "','"
+                    + responseJson.data.Kategori[a].IdTipeCeklist
+                    + "','"
+                    + responseJson.data.Kategori[a].Nama_Kategori
+                    + "','"
+                    + responseJson.data.Kategori[a].Type_Ceklist
+                    + "','"
+                    + responseJson.data.Kategori[a].id_bisnis
+                    + "','"
+                    + responseJson.data.Kategori[a].nama_bisnis
+                    + "')"
+
+                    if(a != responseJson.data.Kategori.length - 1) {
+                        queryMasterKategori = queryMasterKategori + ","
+                    }
+                }
+                queryMasterKategori = queryMasterKategori + ";"
+
+                for(let a = 0; a < responseJson.data.SubKategori.length; a++) {
+                    queryMasterSubKategori = queryMasterSubKategori + "('"
+                    + responseJson.data.SubKategori[a].IdKategori
+                    + "','"
+                    + responseJson.data.SubKategori[a].IdSubKategori
+                    + "','"
+                    + responseJson.data.SubKategori[a].Nama_Sub_Kategori
+                    + "')"
+
+                    if(a != responseJson.data.SubKategori.length - 1) {
+                        queryMasterSubKategori = queryMasterSubKategori + ","
+                    }
+                }
+                queryMasterSubKategori = queryMasterSubKategori + ";"
+
+                for(let a = 0; a < responseJson.data.TipePemeriksaan.length; a++) {
+                    queryMasterTipePemeriksaan = queryMasterTipePemeriksaan + "('"
+                    + responseJson.data.TipePemeriksaan[a].Id
+                    + "','"
+                    + responseJson.data.TipePemeriksaan[a].Tipe_Ceklist
+                    + "')"
+
+                    if(a != responseJson.data.TipePemeriksaan.length - 1) {
+                        queryMasterTipePemeriksaan = queryMasterTipePemeriksaan + ","
+                    } 
+                }
+                queryMasterTipePemeriksaan = queryMasterTipePemeriksaan + ";"
+
+                for(let a = 0; a < responseJson.data.Pertanyaan.length; a++) {
+                    queryMasterPertanyaan = queryMasterPertanyaan + "('"
+                    + responseJson.data.Pertanyaan[a].IdKategori
+                    + "','"
+                    + responseJson.data.Pertanyaan[a].IdPertanyaan
+                    + "','"
+                    + responseJson.data.Pertanyaan[a].IdSubKategori
+                    + "','"
+                    + responseJson.data.Pertanyaan[a].Pertanyaan
+                    + "')"
+
+                    if(a != responseJson.data.Pertanyaan.length - 1) {
+                        queryMasterPertanyaan = queryMasterPertanyaan + ","
+                    }
+                }
+                queryMasterPertanyaan = queryMasterPertanyaan + ";"
+
+                for(let a = 0; a < responseJson.data.Jawaban.length; a ++) {
+                    queryMasterJawaban = queryMasterJawaban + "('"
+                    + responseJson.data.Jawaban[a].IdJawaban
+                    + "','"
+                    + responseJson.data.Jawaban[a].Jawaban
+                    +"')"
+
+                    if(a != responseJson.data.Jawaban.length - 1) {
+                        queryMasterJawaban = queryMasterJawaban + ","
+                    }
+                }
+                queryMasterJawaban = queryMasterJawaban + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(queryMasterKategori)
+                        tx.executeSql(queryMasterSubKategori)
+                        tx.executeSql(queryMasterTipePemeriksaan)
+                        tx.executeSql(queryMasterPertanyaan)
+                        tx.executeSql(queryMasterJawaban)
+                    }, function(error) {
+                        console.log(error.message)
+                        reject('ERROR')
+                    }, function() {
+                        resolve('SUCCESS')
+                    }
+                )
+            }
+        }catch(error){
+            console.log(error.message)
+            reject('ERROR')
+        }
+    }))
+
+    const InsertListChecklist = (responseJson) => (new Promise((resolve, reject) => {
+        let type = 2
+        if(params.Role === 'PPM') {
+            type = 3
+        }
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListChecklist (
+                    Cabang,
+                    Keterangan,
+                    IdST,
+                    NoST,
+                    TglMulai,
+                    TglSelesai,
+                    syncBy,
+                    type
+                ) values `
+
+                for(let a = 0; a < responseJson.data.length; a++) {
+                    query = query + "('"
+                    + responseJson.data[a].Cabang
+                    + "','"
+                    + responseJson.data[a].Keterangan
+                    + "','"
+                    + responseJson.data[a].IdST
+                    + "','"
+                    + responseJson.data[a].NoST
+                    + "','"
+                    + responseJson.data[a].TglMulai
+                    + "','"
+                    + responseJson.data[a].TglSelesai
+                    + "','"
+                    + params.Username
+                    + "','"
+                    + type
+                    + "')"
+
+                    if(a !== responseJson.data.length - 1) {
+                        query = query + ","
+                    }
+                }
+
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('ERROR')
+                    }, function() {
+                        resolve('SUCCESS')
+                    }
+                )
+            } else {
+                resolve('SUCCESS')
+            }
+        }catch(error){
+            console.log(error.message)
+            reject('ERROR')
+        }
+    }))
+
+    const InsertListOptionST = (responseJson) => (new Promise((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListSTChecklist (
+                    Cabang,
+                    IdST,
+                    NoST,
+                    Tahun,
+                    Tgl,
+                    keterangan,
+                    tglMulai,
+                    tglSelesai,
+                    syncBy
+                ) values `
+
+                for(let a = 0; a < responseJson.data.length; a++) {
+                    query = query + "('"
+                    + responseJson.data[a].Cabang
+                    + "','"
+                    + responseJson.data[a].IdST
+                    + "','"
+                    + responseJson.data[a].NoST
+                    + "','"
+                    + responseJson.data[a].Tahun
+                    + "','"
+                    + responseJson.data[a].Tgl
+                    + "','"
+                    + responseJson.data[a].keterangan
+                    + "','"
+                    + responseJson.data[a].tglMulai
+                    + "','"
+                    + responseJson.data[a].tglSelesai
+                    + "','"
+                    + params.Username
+                    + "')"
+
+                    if(a !== responseJson.data.length - 1) {
+                        query = query + ","
+                    }
+                }
+
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('ERROR')
+                    }, function() {
+                        resolve('SUCCESS')
+                    }
+                )
+            }
+        }catch(error){
+            console.log(error.message)
+            reject('ERROR')
+        }
+    }))
+
     const syncFetch = async () => {
         const token = await AsyncStorage.getItem('token')
 
@@ -773,7 +1045,7 @@ const getSyncData = (params) => new Promise((resolve) => {
             if (__DEV__) console.log('InsertOptionSTAM DONE')
         }
 
-        const responseCabangDiperiksa  = await fetch(GetCabangDiperiksa + '/' + params.KodeUnit + '/' + params.PositionName, {
+        const responseCabangDiperiksa  = await fetch(GetCabangDiperiksa + '/' + params.KodeUnit + '/' + params.Role, {
             method: 'GET',
             headers: {
                 Authorization: token,
@@ -783,8 +1055,8 @@ const getSyncData = (params) => new Promise((resolve) => {
         })
         const jsonCabangDiperiksa = await responseCabangDiperiksa.json(responseCabangDiperiksa)
         await InsertCabangDiperiksa(jsonCabangDiperiksa)
-        if (__DEV__) console.log(GetCabangDiperiksa + '/' + params.KodeUnit + '/' + params.PositionName)
-        if (__DEV__) console.log('InsertOptionSTAM DONE')
+        if (__DEV__) console.log(GetCabangDiperiksa + '/' + params.KodeUnit + '/' + params.Role)
+        if (__DEV__) console.log('InsertCabangDiperiksa DONE')
 
         const responseListPPM  = await fetch(GetListPPM + '/' + params.Username + '/' + year, {
             method: 'GET',
@@ -841,6 +1113,47 @@ const getSyncData = (params) => new Promise((resolve) => {
         await InsertOptionSTWAKADIF(jsonOptionSTWakadiv)
         if (__DEV__) console.log(GetoptionSTWakadiv + '/' + params.KodeUnit + '/' + year)
         if (__DEV__) console.log('InsertListRPM DONE')
+
+
+        //CHECKLIST
+        const responseMasterChecklist  = await fetch(GetMasterCekList + '/' + params.Bisnis, {
+            method: 'GET',
+            headers: {
+                Authorization: token,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+                }
+        })
+        const jsonMasterChecklist = await responseMasterChecklist.json(responseMasterChecklist)
+        await InsertMasterChecklist(jsonMasterChecklist)
+        if (__DEV__) console.log(GetMasterCekList + '/' + params.Bisnis)
+        if (__DEV__) console.log('InsertMasterChecklist DONE')
+
+        const responseListCheckList  = await fetch(GetListInputanCeklist + '/' + params.Username, {
+            method: 'GET',
+            headers: {
+                Authorization: token,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+                }
+        })
+        const jsonResponseListCheckList = await responseListCheckList.json(responseListCheckList)
+        await InsertListChecklist(jsonResponseListCheckList)
+        if (__DEV__) console.log(GetListInputanCeklist + '/' + params.Username)
+        if (__DEV__) console.log('InsertListChecklist DONE')
+
+        const reponseOptionSTChecklist  = await fetch(GetOptionST + '/' + params.Username, {
+            method: 'GET',
+            headers: {
+                Authorization: token,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+                }
+        })
+        const jsonOptionSTChecklist = await reponseOptionSTChecklist.json(reponseOptionSTChecklist)
+        await InsertListOptionST(jsonOptionSTChecklist)
+        if (__DEV__) console.log(GetOptionST + '/' + params.Username)
+        if (__DEV__) console.log('InsertListOptionST DONE')
 
         return 'SUCCESS'
     }

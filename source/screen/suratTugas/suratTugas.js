@@ -1,12 +1,13 @@
 import react, { useState, useEffect, useMemo } from 'react'
-import { View, Text, Dimensions, TouchableOpacity, StyleSheet, StatusBar, Image, TextInput, ScrollView, FlatList, SafeAreaView, ActivityIndicator } from 'react-native'
-import { Ionicons } from '@expo/vector-icons';
-import DropDownPicker from 'react-native-dropdown-picker';
+import { View, Text, Dimensions, TouchableOpacity, StyleSheet, StatusBar, Image, TextInput, ScrollView, FlatList, SafeAreaView, ActivityIndicator, Alert } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import DropDownPicker from 'react-native-dropdown-picker'
 import { useNavigation } from '@react-navigation/native'
-import db from '../../../config/database';
+import db from '../../../config/database'
 import moment from 'moment'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { PostSuratTugas } from '../../../config/conf';
+import { PostSuratTugas } from '../../../config/conf'
+import flashNotification from '../../actions/alert'
 
 import { Header } from '../../assets/layout'
 
@@ -46,6 +47,7 @@ const SuratTugas = () => {
     let [dt, setDt] = useState([])
 
     let [loading, setLoading] = useState(false)
+    let [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         const unsubscribe  = Navigation.addListener('focus', async () => {
@@ -70,6 +72,7 @@ const SuratTugas = () => {
         } else if (dt.role === 'PPM') {
             query = query + "type = '3' AND syncBy = '" + dt.username + "'"
         }
+        query = query + ' ORDER BY No DESC'
 
         const data = await SelectDataSuratTugas(query)
 
@@ -91,10 +94,9 @@ const SuratTugas = () => {
     ])
 
     const SyncHandler = async () => {
+        setIsLoading(true)
         const data = await getDataSync()
         const token = await AsyncStorage.getItem('token')
-
-        console.log(data)
 
         const timeOut = (milisecond, promise) => {
             return new Promise((resolve, reject) => {
@@ -118,17 +120,71 @@ const SuratTugas = () => {
             .then((response) => response.json())
             .then((responseJson) => {
                 console.log(responseJson)
+                if(responseJson.responseCode === 200) {
+                    Alert.alert(
+                        'Berhasil',
+                        'Data berhasil di Submit !',
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => {
+                                    let queryCek = `SELECT * FROM ListSTSV WHERE syncBy = '` + username + `' AND stat IS NOT NULL`
+                                    try{
+                                        db.transaction(
+                                            tx => {
+                                                tx.executeSql(queryCek, [], (tx, results) => {
+                                                    let a = results.rows.length
 
+                                                    let queryUpdate = `UPDATE ListSTSV SET stat = null WHERE No IN (`
+                                                    for(let i = 0; i < a; i++) {
+                                                        let data = results.rows.item(i)
+
+                                                        queryUpdate = queryUpdate + data.No
+
+                                                        if(i !== a - 1) {
+                                                            queryUpdate = queryUpdate + ','
+                                                        }
+                                                    }
+
+                                                    queryUpdate = queryUpdate + ');'
+                                                    
+                                                    try{
+                                                        db.transaction(
+                                                            tx => {
+                                                                tx.executeSql(queryUpdate)
+                                                            }, function(error) {
+                                                                setIsLoading(false)
+                                                                alert(error.message)
+                                                            }, function() {
+                                                                flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
+                                                                setIsLoading(false)
+                                                            }
+                                                        )
+                                                    }catch(error) {
+                                                        setIsLoading(false)
+                                                        alert(error.message)
+                                                    }
+                                                })
+                                            }
+                                        )
+                                    }catch(error) {
+                                        setIsLoading(false)
+                                    }
+                                }
+                            }
+                        ]
+                    )
+                }else{
+                    flashNotification("Caution !", responseJson.responseCode + '-' + responseJson.message, "#FA8D49", "#fff")
+                    setIsLoading(false)
+                }
             }).catch((error) => {
                 console.log(error.message)
-                // setLoading(false)
-                // flashNotification("Alert", "Data gagal di proses, Coba lagi beberapa saat. \nError : " + error.message, "#ff6347", "#fff")
+                setIsLoading(false)
             })
         }catch(error){
             console.log(error.message)
-            // console.log("disini")
-            // setLoading(false)
-            // flashNotification("Alert", "Data gagal di proses, Coba lagi beberapa saat. Error : " + error, "#ff6347", "#fff")
+            setIsLoading(false)
         }
     }
 
@@ -158,23 +214,25 @@ const SuratTugas = () => {
                     tx.executeSql(queryGet, [], (tx, results) => {
                         let a = results.rows.length
                         let arr = []
-                        
                         if(a > 0){
                             for(let i = 0; i < a; i++) {
                                 arr.push(results.rows.item(i))
                             }
                             resolve(arr)
                         }else{
-                            alert(error.message)
-                            reject(error.message)
+                            flashNotification("Caution !", "Belum ada data yang di input", "#FA8D49", "#fff")
+                            setIsLoading(false)
                         }
                     },function(error) {
-                        reject(error)
+                        alert(error.message)
+                        reject(error.message)
+                        setIsLoading(false)
                     }
                     )
                 }
             )
         }catch(error){
+            setIsLoading(false)
             alert(error.message)
             reject(error.message)
         }
@@ -193,8 +251,8 @@ const SuratTugas = () => {
 
     const AddSuratTugasButton = () => {
         return(
-            <View style={{ marginVertical: 20, marginHorizontal: 10 }}>
-                <TouchableOpacity onPress={() => Navigation.navigate('InputSuratTugas')} style={{ paddingVertical: 3, width: Dimension.width/2.5, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5', marginBottom: 5 }}>
+            <View style={{ marginVertical: 20, marginHorizontal: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
+                <TouchableOpacity onPress={() => Navigation.navigate('InputSuratTugas')} style={{ paddingVertical: 3, width: Dimension.width/2.5, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5' }}>
                     <Ionicons name="add" size={24} color="#FFF" style={{ marginHorizontal: 5 }} />
                     <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{role === 'KC' ? ("Surprise Visit") : ("Surat Tugas")}</Text>
                 </TouchableOpacity>
@@ -204,66 +262,6 @@ const SuratTugas = () => {
                 </TouchableOpacity>
             </View>
         )
-    }
-
-    const Filter = () => {
-        return(
-            <View>
-                <View style={{ marginHorizontal: 10 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
-                        <Text>Pilih Tahun</Text>
-                        <View style={{ width: Dimension.width/2 }}>
-                            <DropDownPicker
-                                open={open}
-                                value={value}
-                                items={items}
-                                setOpen={setOpen}
-                                setValue={setValue}
-                                setItems={setItems}
-                                placeholder={'Silahkan pilih'}
-                            />
-                        </View>
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }>
-                        <Text>Search</Text>
-                        <View style={{ width: Dimension.width/2 }} >
-                            <TextInput
-                                placeholder='Masukkan No. Register'
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF' }}
-                                onChangeText={(value) => {
-                                    searchHandler(value, datast)
-                                }}
-                            />
-                        </View>
-                    </View>
-
-                    <View style={{ borderBottomWidth: 0.5, marginTop: 10, marginBottom: 10 }} />
-
-                </View>
-            </View>
-        )
-    }
-
-    const yrHandler = () => {
-        if(value !== null) {
-            let newData = []
-
-            if (value !== '') {
-                newData = dt.filter(function(item) {
-                    const itemData = moment(item.TanggalMulai).format('YYYY');
-                    const textData = value;
-                    return itemData.includes(textData);
-                })
-                setDatast([...newData]);
-                return true
-            } else if(value === '') {
-                setDatast([...dt]);
-                return true
-            }
-        }else{
-            return true
-        }
     }
 
     const searchHandler = (value, data) => {
@@ -328,9 +326,23 @@ const SuratTugas = () => {
             {role === 'KC' ? (
                 <View></View>
             ) : (
-                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <Text>Status</Text>
-                    <Text>{data.Approval_Flag === '1' ? 'Disetujui' : 'Belum Disetujui'}</Text>
+                <View style={{ marginHorizontal: 10 }}>
+                    <View style={{ flexDirection: 'row' }}>
+                        <View style={{ flex: 2 }}>
+                            <Text style={{ fontWeight: 'bold' }}>Status</Text>
+                        </View>
+                        <View style={{ flex: 4 }}>
+                            <Text>: {data.Approval_Flag === '1' ? 'Disetujui' : 'Belum Disetujui'}</Text>
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row' }}>
+                        <View style={{ flex: 2 }}>
+                            <Text style={{ fontWeight: 'bold' }}>Cabang</Text>
+                        </View>
+                        <View style={{ flex: 4 }}>
+                            <Text numberOfLines={1}>: {data.idCabangDiperiksa + ' - ' + data.keterangan}</Text>
+                        </View>
+                    </View>
                 </View>
             ) }
 
@@ -363,30 +375,15 @@ const SuratTugas = () => {
             <AddSuratTugasButton />
             <View>
                 <View style={{ marginHorizontal: 10 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
-                        <Text>Pilih Tahun</Text>
-                        <View style={{ width: Dimension.width/2 }}>
-                            <DropDownPicker
-                                open={open}
-                                value={value}
-                                items={items}
-                                setOpen={setOpen}
-                                setValue={setValue}
-                                setItems={setItems}
-                                placeholder={'Silahkan pilih'}
-                            />
-                            <TouchableOpacity style={{ alignSelf: 'flex-end', marginTop: 5, borderRadius: 5, paddingHorizontal: 20, backgroundColor: '#41BA90' }} onPress={() => yrHandler()}>
-                                <Text style={{ color: '#FFF' }}>Filter</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }>
-                        <Text>Search</Text>
-                        <View style={{ width: Dimension.width/2 }} >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' } }>
+                        <View style={{ marginRight: 20 }}>
+                            <Text style={{ fontWeight: 'bold' }}>Search</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
                             <TextInput
                                 placeholder='Masukkan No. Register'
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF' }}
+                                style={{ borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#FFF' }}
                                 onChangeText={(value) => {
                                     searchHandler(value, datast)
                                 }}
@@ -399,6 +396,11 @@ const SuratTugas = () => {
                 </View>
             </View>
             <ListBody />
+            {isLoading && 
+                <View style={styles.isloading} >
+                    <ActivityIndicator size={'large'} color="#0085E5" />
+                </View>
+            }
         </View>
     )
 }
@@ -419,5 +421,16 @@ const styles = StyleSheet.create({
         opacity: 0.7,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    isloading: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        opacity: 0.7,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'black'
     }
 })

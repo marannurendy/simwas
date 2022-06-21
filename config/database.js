@@ -61,6 +61,7 @@ db.transaction(tx => {
             jenisAuditor varchar,
             cabangDiperiksa varchar,
             idCabangDiperiksa varchar,
+            cabang,
             syncBy varchar,
             type varchar,
             stat varchar)
@@ -153,6 +154,98 @@ db.transaction(tx => {
         ;`
     );
 
+    //CHECKLIST
+    tx.executeSql(
+        `create table if not exists MasterKategori(
+            IdKategori varchar UNIQUE,
+            IdTipeCeklist varchar,
+            Nama_Kategori varchar,
+            Type_Ceklist varchar,
+            id_bisnis varchar,
+            nama_bisnis varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists SubKategori(
+            IdKategori varchar,
+            IdSubKategori varchar UNIQUE,
+            Nama_Sub_Kategori varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists TipePemeriksaan(
+            Id varchar UNIQUE,
+            Tipe_Ceklist varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists Pertanyaan(
+            IdKategori varchar,
+            IdPertanyaan varchar UNIQUE,
+            IdSubKategori varchar,
+            Pertanyaan varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists Jawaban(
+            IdJawaban UNIQUE,
+            Jawaban varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists ListChecklist(
+            Cabang varchar,
+            Keterangan varchar,
+            IdST varchar,
+            NoST varchar UNIQUE,
+            TglMulai varchar,
+            TglSelesai varchar,
+            syncBy varchar,
+            type varchar,
+            stat varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists InputListChecklist(
+            NoST varchar,
+            IdST varchar,
+            idPertanyaan varchar,
+            Sample varchar,
+            Temuan varchar,
+            DetailTemuan varchar,
+            Scoring varchar,
+            syncBy vachar,
+            type varchar,
+            stat varchar
+        );`
+    )
+
+    tx.executeSql(
+        `create table if not exists ListSTChecklist(
+            Cabang varchar,
+            IdST varchar,
+            NoST varchar,
+            Tahun varchar,
+            Tgl varchar,
+            approval_by varchar,
+            approval_date varchar,
+            approval_flag varchar,
+            approval_ket varchar,
+            jenisAuditor varchar,
+            keterangan varchar,
+            tglMulai varchar,
+            tglSelesai varchar,
+            syncBy varchar,
+            stat varchar
+        );`
+    )
+
     // tx.executeSql('DROP TABLE IF EXISTS ListKodeCLKA')
     // tx.executeSql('DROP TABLE IF EXISTS OptionSVKC')
     // tx.executeSql('DROP TABLE IF EXISTS OptionSTAM')
@@ -162,6 +255,14 @@ db.transaction(tx => {
     // tx.executeSql('DROP TABLE IF EXISTS OptionST')
     // tx.executeSql('DROP TABLE IF EXISTS Pemeriksa')
     // tx.executeSql('DROP TABLE IF EXISTS OptionSTWAKADIF')
+    // tx.executeSql('DROP TABLE IF EXISTS MasterKategori')
+    // tx.executeSql('DROP TABLE IF EXISTS SubKategori')
+    // tx.executeSql('DROP TABLE IF EXISTS TipePemeriksaan')
+    // tx.executeSql('DROP TABLE IF EXISTS Pertanyaan')
+    // tx.executeSql('DROP TABLE IF EXISTS Jawaban')
+    // tx.executeSql('DROP TABLE IF EXISTS ListChecklist')
+    // tx.executeSql('DROP TABLE IF EXISTS ListSTChecklist')
+    // tx.executeSql('DROP TABLE IF EXISTS InputListChecklist')
 
 },function(error) {
     console.log('Transaction ERROR: ' + error.message);
