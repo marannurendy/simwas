@@ -8,39 +8,33 @@ import { Ionicons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
 
 import db from '../../../config/database'
-import { Model, ModelInsertChecklist } from '../../actions/model'
+import { Model, ModelInsertChecklist, ModelGetDataEditChecklist } from '../../actions/model'
 import { Header } from '../../assets/layout'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import flashNotification from '../../actions/alert'
 
 const Dimension = Dimensions.get('window')
 
-const InputChecklist = () => {
+const EditChecklist = (props) => {
+    const { register } = props.route.params
     const Navigation = useNavigation()
     const scrollRef = useRef()
 
     let [dataInput, setDataInput] = useState({
         Cabang : '',
         IdST : '',
-        Tahun : '',
-        Tgl : date,
-        approval_by : '',
-        approval_date : '',
-        approval_flag : '',
-        approval_ket : '',
-        jenisAuditor : '',
-        keterangan : '-',
-        label : '',
+        Keterangan : '',
+        NoST : date,
+        TglMulai : '',
+        TglSelesai : '',
         stat : '',
         syncBy : '',
-        tglMulai : date,
-        tglSelesai : date,
-        value : ''
+        type : ''
     })
 
     let [inputList, setInputList] = useState([
         {
-            idPemeriksaan: 1,
+            idPemeriksaan: '',
             jenisPemeriksaan: '',
             kategoriPemeriksaan: '',
             subKategori: '',
@@ -84,6 +78,7 @@ const InputChecklist = () => {
 
             setUserInfo(params)
             getMaster(params)
+            getDataExist(params)
         })
 
         return unsubscribe
@@ -96,10 +91,6 @@ const InputChecklist = () => {
         let queryGetMasterSubKategori = await Model('queryGetMasterSubKategori', params)
         let queryGetPertanyaan = await Model('queryGetMasterPertanyaan', params)
         let queryGetMasterJawaban = await Model('queryGetMasterJawaban', params)
-
-        let test = `SELECT * FROM ListPemeriksaan`
-        const test1 = await selectMaster(test)
-        console.log(test1)
 
         const masterST = await selectMaster(queryGetMasterST)
         if(masterST.status === 'ERROR') {
@@ -150,6 +141,128 @@ const InputChecklist = () => {
         setListST(masterST.data)
     }
 
+    const getDataExist = async (params) => {
+        let queryGetDataDetail = await ModelGetDataEditChecklist('queryGetDataDetail', register, params)
+        let queryGetDataQuest = await ModelGetDataEditChecklist('queryGetDataQuest', register, params)
+
+        // let test = `SELECT * FROM ListPemeriksaan`
+        // let test1 = await selectMaster(test, register)
+        // console.log(test1)
+
+        let test = `SELECT * FROM ListPemeriksaan WHERE NoST = '` + register + `'`
+        let test1 = await selectMasterDetail(test, register)
+        console.log(test1)
+
+        let masterDataDetail = await selectMaster(queryGetDataDetail)
+        if(masterDataDetail.status === 'ERROR') {
+            alert(masterDataDetail.data)
+            return false
+        }
+        setDataInput(masterDataDetail.data[0])
+        setValueST(masterDataDetail.data[0].NoST)
+
+        let masterDataQuest = await selectMaster(queryGetDataQuest)
+        if(masterDataQuest.status === 'ERROR') {
+            alert(masterDataQuest.data)
+            return false
+        }
+
+        // console.log(masterDataQuest)
+    }
+
+    const selectMasterDetail = (query, register) => (new Promise((resolve, reject) => {
+        let response = {
+            status : '',
+            data : []
+        }
+
+        let detail = {
+            idPemeriksaan: '',
+            jenisPemeriksaan: '',
+            kategoriPemeriksaan: '',
+            subKategori: '',
+            pertanyaan: [
+                {
+                    idPertanyaan: '',
+                    jumlahSample: '',
+                    jumlahTemuan: '',
+                    detailTemuan: '',
+                    scoring: ''
+                }
+            ]
+        }
+        
+        try{
+            db.transaction(
+                tx => {
+                    tx.executeSql(query, [], (tx, results) => {
+                        let dataLen = results.rows.length
+                        let arr = []
+
+                        for(let a = 0; a < dataLen; a++) {
+                            let dt = results.rows.item(a)
+
+                            let det = {
+                                idPemeriksaan: dt.IdPemeriksaan,
+                                jenisPemeriksaan: dt.JenisPememeriksaan,
+                                kategoriPemeriksaan: dt.KategoriPemeriksaan,
+                                subKategori: dt.SubKategori,
+                                pertanyaan: []
+                            }
+
+                            let query = `SELECT * FROM InputListChecklist WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `'`
+
+                            db.transaction(
+                                tx => {
+                                    tx.executeSql(query, [], (tx, results) => {
+                                        let dtLen = results.rows.length
+                                        let arrHelp = []
+        
+                                        for(let x = 0; x < dtLen; x++) {
+                                            let u = results.rows.item(x)
+        
+                                            arrHelp.push(u)
+                                        }
+                                        console.log("holy shit")
+                                        console.log(det)
+                                        // det[a].pertanyaan.push(arr)
+                                    })
+                                }, function(error) {
+                                    console.log(error.message)
+                                }
+                            )
+
+                            // console.log(query)
+
+                            arr.push(det)
+                        }
+
+                        console.log("this")
+                        console.log(arr)
+
+                        response = {
+                            status : 'SUCCESS',
+                            data: arr
+                        }
+                        resolve(response)
+                    })
+                }, function(error) {
+                    response = {
+                        status : 'ERROR',
+                        data: error.message
+                    }
+                    reject(response)
+                }
+            )
+        }catch(error){
+            response = {
+                status : 'ERROR',
+                data : error.message
+            }
+            reject(response)
+        }
+    }))
+
     const selectMaster = (query) => (new Promise((resolve, reject) => {
         let response = {
             status : '',
@@ -178,6 +291,7 @@ const InputChecklist = () => {
                         status : 'ERROR',
                         data: error.message
                     }
+                    reject(response)
                 }
             )
         }catch(error){
@@ -185,6 +299,7 @@ const InputChecklist = () => {
                 status : 'ERROR',
                 data : error.message
             }
+            reject(response)
         }
     }))
 
@@ -194,12 +309,12 @@ const InputChecklist = () => {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     {/* <Image source={require('../assets/icon/Task-small.png')} /> */}
                     <Image source={require('../../assets/icon/Checklist-small.png')} />
-                    <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >Input Checklist</Text>
+                    <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >Edit Checklist</Text>
                 </View>
                 <View style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
                     <TouchableOpacity onPress={() => SaveHandler()} style={{ paddingVertical: 5, paddingHorizontal: 25, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5' }}>
                         <Ionicons name="save" size={18} color="#FFF" style={{ marginHorizontal: 5 }} />
-                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Simpan</Text>
+                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Update</Text>
                     </TouchableOpacity>
                 </View>
                 
@@ -287,9 +402,7 @@ const InputChecklist = () => {
     }
 
     const addFormHandler = () => {
-        let idPemeriksaan = inputList.length + 1
         let newObj = {
-            idPemeriksaan: idPemeriksaan,
             jenisPemeriksaan: '',
             kategoriPemeriksaan: '',
             subKategori: '',
@@ -362,6 +475,8 @@ const InputChecklist = () => {
     }
 
     const onSelectListST = (item) => {
+        console.log('ini')
+        console.log(item)
         setDataInput(item)
     }
 
@@ -471,19 +586,12 @@ const InputChecklist = () => {
                 <ScrollView ref={scrollRef} style={{ marginHorizontal: 10 }} >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
                         <Text>Nomor Surat Tugas</Text>
-                        <View style={{ width: Dimension.width/2 }}>
-                            <DropDownPicker
-                                open={openListST}
-                                value={valueST}
-                                items={listST}
-                                setOpen={setOpenListST}
-                                setValue={setValueST}
-                                setItems={setItems}
-                                placeholder={'Pilih nomor ST'}
-                                searchable={true}
-                                onSelectItem={(item) => onSelectListST(item)}
-                                listMode='SCROLLVIEW'
-                                scrollViewProps={{ nestedScrollEnabled: true }}
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TextInput
+                                numberOfLines={1}
+                                value={dataInput.NoST}
+                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                editable={false}
                             />
                         </View>
                     </View>
@@ -492,13 +600,13 @@ const InputChecklist = () => {
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
                                 numberOfLines={1}
-                                value={dataInput.keterangan}
+                                value={dataInput.Keterangan}
                                 style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
                                 editable={false}
                             />
                         </View>
                     </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                    {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
                         <Text>Tanggal Input</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
@@ -507,12 +615,12 @@ const InputChecklist = () => {
                                 editable={false}
                             />
                         </View>
-                    </View>
+                    </View> */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
                         <Text>Tanggal Awal</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
-                                value={moment(dataInput.tglMulai).format('L')}
+                                value={dataInput.TglMulai}
                                 style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
                                 editable={false}
                             />
@@ -522,7 +630,7 @@ const InputChecklist = () => {
                         <Text>Tanggal Akhir</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
-                                value={moment(dataInput.tglSelesai).format('L')}
+                                value={dataInput.TglSelesai}
                                 style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
                                 editable={false}
                             />
@@ -734,7 +842,7 @@ const InputChecklist = () => {
     )
 }
 
-export default InputChecklist
+export default EditChecklist
 
 const styles = StyleSheet.create({
 

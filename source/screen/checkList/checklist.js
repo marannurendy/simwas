@@ -1,5 +1,5 @@
 import react, { useState, useEffect } from 'react'
-import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, StatusBar, TextInput, ActivityIndicator, FlatList, SafeAreaView } from 'react-native'
+import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, StatusBar, TextInput, ActivityIndicator, FlatList, SafeAreaView, Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,8 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import moment from 'moment'
 
 import db from '../../../config/database';
+import { PostCheckList } from '../../../config/conf';
+import flashNotification from '../../actions/alert';
 
 import { Header } from '../../assets/layout';
 
@@ -23,6 +25,9 @@ const Checklist = () => {
         {label: '2021', value: '2021'}
     ])
 
+    let [userInfo, setUserInfo] = useState()
+
+    let [isLoading, setIsLoading] = useState(false)
     let [role, setRole] = useState()
     let [loading, setLoading] = useState(false)
 
@@ -40,6 +45,8 @@ const Checklist = () => {
         setLoading(true)
         const userdt = await AsyncStorage.getItem('user_data')
         let dt = JSON.parse(userdt)
+
+        setUserInfo(dt)
 
         let query = "SELECT DISTINCT * FROM ListChecklist WHERE "
         if (dt.role === 'KA') {
@@ -93,6 +100,161 @@ const Checklist = () => {
         }
     }))
 
+    const SyncHandler = async () => {
+        setIsLoading(true)
+        const data = await getDataSync()
+        const token = await AsyncStorage.getItem('token')
+
+        const timeOut = (milisecond, promise) => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(new Error("Request Timeout, perhatikan jaringan anda lalu coba sync beberapa saat lagi."))
+                }, milisecond)
+                promise.then(resolve, reject)
+            })
+        }
+
+        Alert.alert(
+            'Info !',
+            'Apakah Anda yakin ingin melakukan sync data ?',
+            [
+                {
+                    text: 'Batal',
+                    onPress: () => {
+                        setIsLoading(false)
+                    }
+                },
+                {
+                    text: 'Ya',
+                    onPress: () => {
+                        try{
+                            timeOut(60000, fetch(PostCheckList, {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: token,
+                                    Accept: 'application/json',
+                                    'Content-Type': 'application/json'
+                                    },
+                                body: JSON.stringify(data)
+                            }))
+                            .then((response) => response.json())
+                            .then((responseJson) => {
+                                console.log(responseJson)
+                                if(responseJson.responseCode === 200) {
+                                    Alert.alert(
+                                        'Berhasil',
+                                        'Data berhasil di Submit !',
+                                        [
+                                            {
+                                                text: 'Ok',
+                                                onPress: () => {
+                                                    let queryCek = `SELECT * FROM InputListChecklist WHERE syncBy = '` + userInfo.username + `' AND stat IS NOT NULL`
+                                                    try{
+                                                        db.transaction(
+                                                            tx => {
+                                                                tx.executeSql(queryCek, [], (tx, results) => {
+                                                                    let a = results.rows.length
+                
+                                                                    let queryUpdate = `UPDATE InputListChecklist SET stat = null WHERE NoST IN (`
+                                                                    for(let i = 0; i < a; i++) {
+                                                                        let data = results.rows.item(i)
+                
+                                                                        queryUpdate = queryUpdate + data.NoST
+                
+                                                                        if(i !== a - 1) {
+                                                                            queryUpdate = queryUpdate + ','
+                                                                        }
+                                                                    }
+                
+                                                                    queryUpdate = queryUpdate + ');'
+                                                                    
+                                                                    try{
+                                                                        db.transaction(
+                                                                            tx => {
+                                                                                tx.executeSql(queryUpdate)
+                                                                            }, function(error) {
+                                                                                setIsLoading(false)
+                                                                                alert(error.message)
+                                                                            }, function() {
+                                                                                flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
+                                                                                setIsLoading(false)
+                                                                            }
+                                                                        )
+                                                                    }catch(error) {
+                                                                        setIsLoading(false)
+                                                                        alert(error.message)
+                                                                    }
+                                                                })
+                                                            }
+                                                        )
+                                                    }catch(error) {
+                                                        setIsLoading(false)
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    )
+                                }else{
+                                    flashNotification("Caution !", responseJson.responseCode + '-' + responseJson.message, "#FA8D49", "#fff")
+                                    setIsLoading(false)
+                                }
+                            }).catch((error) => {
+                                console.log(error.message)
+                                setIsLoading(false)
+                            })
+                        }catch(error){
+                            console.log(error.message)
+                            setIsLoading(false)
+                        }
+                    }
+                }
+            ]
+        )
+    }
+
+    const getDataSync = () => (new Promise ((resolve, reject) => {
+        let query = `SELECT DISTINCT
+            b.Cabang,
+            a.NoST as nost,
+            a.IdST as idst,
+            a.idPertanyaan as id_pertanyaan,
+            a.Sample,
+            a.Temuan,
+            a.Scoring,
+            a.syncBy as Username
+            FROM InputListChecklist a
+            INNER JOIN ListChecklist b ON a.NoST = b.NoST
+            WHERE a.syncBy = '` + userInfo.username + `' AND a.stat IS NOT NULL`
+
+        try{
+            db.transaction(
+                tx => {
+                    tx.executeSql(query, [], (tx, results) => {
+                        let dataLength = results.rows.length
+                        let arr = []
+
+                        if(dataLength > 0) {
+                            for(let a = 0; a < dataLength; a++) {
+                                let dt = results.rows.item(a)
+    
+                                arr.push(dt)
+                            }
+                            resolve(arr)
+                        }else{
+                            flashNotification("Caution !", "Belum ada data yang di input", "#FA8D49", "#fff")
+                            setIsLoading(false)
+                        }
+                        
+                    })
+                }, function(error){
+                    reject(error.message)
+                }
+            )
+        }catch(error){
+            reject(error.message)
+        }
+    }))
+
     const Head = () => {
         return(
             <View style={{ marginTop: 20, marginHorizontal: 10 }}>
@@ -106,10 +268,14 @@ const Checklist = () => {
 
     const AddSuratTugasButton = () => {
         return(
-            <View style={{ marginVertical: 20, marginHorizontal: 10 }}>
+            <View style={{ marginVertical: 20, marginHorizontal: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
                 <TouchableOpacity onPress={() => Navigation.navigate('InputChecklist')} style={{ paddingVertical: 3, width: Dimension.width/2, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5' }}>
                     <Ionicons name="add" size={24} color="#FFF" />
                     <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Data Pemeriksaan</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => SyncHandler()} style={{ paddingVertical: 3, width: Dimension.width/3.5, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#41BA90' }}>
+                    <Ionicons name="cloud-upload" size={20} color="#FFF" style={{ marginHorizontal: 5 }} />
+                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Sync</Text>
                 </TouchableOpacity>
             </View>
         )
@@ -187,7 +353,7 @@ const Checklist = () => {
                 {data.Approval_Flag === '1' ? (
                     <View></View>
                 ) : (
-                    <TouchableOpacity onPress={() => Navigation.navigate('EditSuratTugas', {register : data.No})} style={{ flex: 3, alignItems: 'center', borderBottomEndRadius: 10, borderTopEndRadius: 10, padding: 5, backgroundColor: '#41BA90' }}>
+                    <TouchableOpacity onPress={() => Navigation.navigate('EditChecklist', {register : data.NoST})} style={{ flex: 3, alignItems: 'center', borderBottomEndRadius: 10, borderTopEndRadius: 10, padding: 5, backgroundColor: '#41BA90' }}>
                         <Ionicons name='pencil' size={20} color="#FFF" />
                     </TouchableOpacity>
                 )}
@@ -239,6 +405,11 @@ const Checklist = () => {
                 </View>
             </View>
             <ListBody />
+            {isLoading && 
+                <View style={styles.isloading} >
+                    <ActivityIndicator size={'large'} color="#0085E5" />
+                </View>
+            }
         </View>
     )
 }
@@ -264,5 +435,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: Dimension.width/3.5
     },
+    isloading: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        opacity: 0.7,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'black'
+    }
 })
 

@@ -118,7 +118,7 @@ const InputSuratTugas = () => {
     }
 
     const SubmitHandler = () => {
-        let today = moment().format('DD-MM-YYYY')
+        let today = moment().format('YYYY-MM-DD')
         let dtType = '0'
 
         if(role === 'KC') {

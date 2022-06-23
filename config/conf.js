@@ -16,7 +16,7 @@ if (IS_DEVELOPMENT) {
     MINOR_VERSION = '0';
     PATCH_VERSION = '0';
     BUILD = '001';
-    TANGGAL = '2022-05-26';
+    TANGGAL = '2022-06-22';
     
     base_url = 'http://10.61.3.253:9000';
 
@@ -60,6 +60,7 @@ let GetListInputanCeklist = `${baseChecklist}/GetListInputanCeklist`
 let GetOptionSTCL = `${baseChecklist}/GetOptionSTCL`
 let GetOptionSTCLAM = `${baseChecklist}/GetOptionSTCLAM`
 let GetOptionSTCLKC = `${baseChecklist}/GetOptionSTCLKC`
+let GetListNotYetTL = `${baseChecklist}/GetListNotYetTL`
 
 // POST SURAT TUGAS
 let PostNoLapAM = `${base_url}/${api_version}/surattugas/PostNoLapAM`
@@ -67,6 +68,9 @@ let PostSuratTugas = `${base_url}/${api_version}/surattugas/PostSuratTugas`
 
 // POST CHECKLIST
 let PostCheckList = `${base_url}/${api_version}/checklist/PostCheckList`
+
+// POST TINDAK LANJUT
+let PostTindakLanjut = `${base_url}/${api_version}/tindaklanjut/UpdateTindakLanjut`
 
 export {
     VERSION, 
@@ -94,5 +98,7 @@ export {
     PostNoLapAM,
     PostSuratTugas,
     PostCheckList,
-    GetListInputanCeklist
+    GetListInputanCeklist,
+    GetListNotYetTL,
+    PostTindakLanjut
 }

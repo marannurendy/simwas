@@ -1,6 +1,6 @@
 import db from "../../config/database"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { ToastAndroid } from "react-native"
+import { ToastAndroid, Alert } from "react-native"
 import { 
     GetListKodeCLKA,
     GetOptionSVKC,
@@ -11,33 +11,74 @@ import {
     GetOptionST,
     GetPemeriksa,
     GetoptionSTWakadiv,
+    GetOptionSTCL,
     GetMasterCekList,
-    GetListInputanCeklist } from "../../config/conf"
+    GetListInputanCeklist,
+    GetListNotYetTL } from "../../config/conf"
 import moment from 'moment'
 
-const getSyncData = (params) => new Promise((resolve) => {
+const getSyncData = (params) => new Promise( async (resolve) => {
 
-    // const year = moment().format('YYYY')
-    const year = '2021'
+    const year = moment().format('YYYY')
+    // const year = '2021'
+
+    const statusSync = await AsyncStorage.getItem('syncStat')
+    if(statusSync === 'true') {
+        Alert.alert(
+            'Caution !',
+            'Apakah anda yakin akan sync data ? Seluruh data yang ada di perangkat akan di hapus',
+            [
+                {
+                    text: 'Batal',
+                    onPress: () => {
+                        resolve('Data tidak di hapus')
+                    }
+                },
+                {
+                    text: 'Ya',
+                    onPress: () => {
+                        truncat()
+                        resolve(syncFetch())
+                    }
+                }
+            ]
+        )
+    }else{
+        AsyncStorage.setItem('syncStat', 'true')
+        resolve(syncFetch())
+    }
 
     const truncat = (reject, source) => {
         if (__DEV__) console.log('ACTIONS GET SYNC DATA TRUNCAT LOADED');
 
         return db.transaction(
             tx => {
-                tx.executeSql("DELETE FROM ListKodeCLKA");
-                tx.executeSql("DELETE FROM OptionSVKC");
-                tx.executeSql("DELETE FROM OptionSTAM");
-                tx.executeSql("DELETE FROM CabangDiperiksa");
-                tx.executeSql("DELETE FROM ListPPM");
-                tx.executeSql("DELETE FROM ListRPM");
-                tx.executeSql("DELETE FROM OptionST");
-                tx.executeSql("DELETE FROM Pemeriksa");
-                tx.executeSql("DELETE FROM OptionSTWAKADIF");
+                tx.executeSql('DELETE FROM ListKodeCLKA')
+                tx.executeSql('DELETE FROM OptionSVKC')
+                tx.executeSql('DELETE FROM OptionSTAM')
+                tx.executeSql('DELETE FROM ListSTSV')
+                tx.executeSql('DELETE FROM CabangDiperiksa')
+                tx.executeSql('DELETE FROM ListPPM')
+                tx.executeSql('DELETE FROM ListRPM')
+                tx.executeSql('DELETE FROM OptionST')
+                tx.executeSql('DELETE FROM Pemeriksa')
+                tx.executeSql('DELETE FROM OptionSTWAKADIF')
+                tx.executeSql('DELETE FROM MasterKategori')
+                tx.executeSql('DELETE FROM SubKategori')
+                tx.executeSql('DELETE FROM TipePemeriksaan')
+                tx.executeSql('DELETE FROM Pertanyaan')
+                tx.executeSql('DELETE FROM Jawaban')
+                tx.executeSql('DELETE FROM ListChecklist')
+                tx.executeSql('DELETE FROM ListSTChecklist')
+                tx.executeSql('DELETE FROM InputListChecklist')
+                tx.executeSql('DELETE FROM ListPemeriksaan')
+                tx.executeSql('DELETE FROM ListSiapTL')
+                tx.executeSql('DELETE FROM OptionSTCL')
             }, function(error) {
                 ToastAndroid.show("SOMETHING WENT WRONG: " + JSON.stringify(error), ToastAndroid.SHORT);
                 reject('GAGAL MEMPROSES DATA ' + source);
             }, function() {
+                console.log('data di hapus')
                 resolve('DATA KOSONG ' + source)
             }
         )
@@ -1012,6 +1053,168 @@ const getSyncData = (params) => new Promise((resolve) => {
         }
     }))
 
+    const InsertListSTApproved = (responseJson) => new Promise ((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListSTApproved (
+                    IdST,
+                    NoST,
+                    Tgl,
+                    Tahun,
+                    keterangan,
+                    tglMulai,
+                    tglSelesai,
+                    cabang) values `
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    query = query + "('"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].Tgl
+                    + "','"
+                    + responseJson.data[i].Tahun
+                    + "','"
+                    + responseJson.data[i].keterangan
+                    + "','"
+                    + responseJson.data[i].tglMulai
+                    + "','"
+                    + responseJson.data[i].tglSelesai
+                    + "','"
+                    + responseJson.data[i].Cabang
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) query = query + ","
+                }
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('GAGAL INPUT DATA OptionST')
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL');
+                return;
+            }
+        }catch(error){
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
+            return
+        }
+    })
+
+    const InsertNotYetTL = (responseJson) => new Promise ((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO ListSiapTL (
+                    IdST,
+                    NoST,
+                    Tgl_Target,
+                    Tahun,
+                    Keterangan,
+                    tindak_lanjut,
+                    IdPertanyaan,
+                    stat) values `
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    query = query + "('"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].Tgl_Target
+                    + "','"
+                    + responseJson.data[i].Tahun
+                    + "','"
+                    + responseJson.data[i].keterangan
+                    + "','"
+                    + responseJson.data[i].tindak_lanjut
+                    + "','"
+                    + responseJson.data[i].IdPertanyaan
+                    + "','"
+                    + "0"
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) query = query + ","
+                }
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('GAGAL INPUT DATA ListSiapTL')
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL');
+                return;
+            }
+        }catch(error){
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
+            return
+        }
+    })
+
+    const InsertOptionSTCL = (responseJson) => new Promise ((resolve, reject) => {
+        try{
+            if(responseJson.data !== null) {
+                let query = `INSERT OR IGNORE INTO OptionSTCL (
+                    IdST,
+                    NoST,
+                    Tgl,
+                    Tahun,
+                    Keterangan,
+                    tindak_lanjut) values `
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    query = query + "('"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].Tgl
+                    + "','"
+                    + responseJson.data[i].Tahun
+                    + "','"
+                    + responseJson.data[i].keterangan
+                    + "','"
+                    + responseJson.data[i].tindak_lanjut
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) query = query + ","
+                }
+                query = query + ";"
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(query)
+                    }, function(error) {
+                        reject('GAGAL INPUT DATA OptionSTCL')
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL');
+                return;
+            }
+        }catch(error){
+            console.log('ACTIONS GET SYNC DATA COLLECTION INSERT TRANSACTION TRY CATCH ERROR:', error)
+            reject('GAGAL INPUT DATA COLLECTION KE LOCALSTORAGE')
+            return
+        }
+    })
+
     const syncFetch = async () => {
         const token = await AsyncStorage.getItem('token')
 
@@ -1155,10 +1358,36 @@ const getSyncData = (params) => new Promise((resolve) => {
         if (__DEV__) console.log(GetOptionST + '/' + params.Username)
         if (__DEV__) console.log('InsertListOptionST DONE')
 
+        const responseListNotYetTL  = await fetch(GetListNotYetTL + '/' + params.Username, {
+            method: 'GET',
+            headers: {
+                Authorization: token,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        const jsonListNotYetTL = await responseListNotYetTL.json(responseListNotYetTL)
+        await InsertNotYetTL(jsonListNotYetTL)
+        if (__DEV__) console.log(GetListNotYetTL + '/' + params.Username)
+        if (__DEV__) console.log('Insert List Siap Tindak Lanjut DONE')
+
+        const responseOptionSTCL  = await fetch(GetOptionSTCL + '/' + params.Username, {
+            method: 'GET',
+            headers: {
+                Authorization: token,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+                }
+        })
+        const jsonOptionSTCL = await responseOptionSTCL.json(responseOptionSTCL)
+        await InsertOptionSTCL(jsonOptionSTCL)
+        if (__DEV__) console.log(GetOptionSTCL + '/' + params.Username)
+        if (__DEV__) console.log('Insert Ceklist RPM atau PPM DONE')
+
         return 'SUCCESS'
     }
 
-    resolve(syncFetch())
+    // resolve(syncFetch())
 })
 
 export default getSyncData

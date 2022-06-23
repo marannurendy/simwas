@@ -54,10 +54,47 @@ const Model = (type, params) => (new Promise((resolve, reject) => {
         let queryGetMasterJawaban = `SELECT DISTINCT
         IdJawaban as value,
         Jawaban as label FROM Jawaban`
-    }    
+
+        resolve(queryGetMasterJawaban)
+    }
+}))
+
+const ModelGetDataEditChecklist = (type, register, param) => (new Promise((resolve, reject) => {
+    if(type === 'queryGetDataDetail') {
+        let queryGetDataDetail = `SELECT DISTINCT 
+        Cabang,
+        Keterangan,
+        IdST,
+        NoST,
+        TglMulai,
+        TglSelesai,
+        syncBy,
+        type,
+        stat FROM ListChecklist WHERE NoST = '` + register + `';`
+
+        resolve(queryGetDataDetail)
+    }else if(type === 'queryGetDataQuest') {
+        let queryGetDataQuest = `SELECT
+        NoST,
+        IdST,
+        idPertanyaan,
+        Sample,
+        Temuan,
+        DetailTemuan,
+        Scoring,
+        syncBy,
+        type
+        stat FROM InputListChecklist WHERE NoST = '` + register + `';`
+
+        resolve(queryGetDataQuest)
+    }
 }))
 
 const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promise((resolve, reject) => {
+    console.log(dataChecklist)
+    console.log(dataPemeriksaan)
+    console.log(param)
+
     let dataPemeriksaanLength = dataPemeriksaan.length
     let role = param.role === 'RPM' ? 2 : param.role === 'PPM' ? 3 : 1
     let response = {
@@ -90,6 +127,7 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
     let queryInsertQuest = `INSERT INTO InputListChecklist (
         NoST,
         IdST,
+        IdPemeriksaan,
         idPertanyaan,
         Sample,
         Temuan,
@@ -100,17 +138,46 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
         stat
     ) values `
 
+    let queryInsertPemeriksaan = `INSERT INTO ListPemeriksaan (
+        NoST,
+        IdST,
+        IdPemeriksaan,
+        JenisPememeriksaan,
+        KategoriPemeriksaan,
+        SubKategori
+    ) values `
+
+    for(let i = 0; i < dataPemeriksaanLength; i++) {
+        queryInsertPemeriksaan = queryInsertPemeriksaan + "('"
+        + dataChecklist.noST
+        + "','"
+        + dataChecklist.idST
+        + "','"
+        + dataPemeriksaan[i].idPemeriksaan
+        + "','"
+        + dataPemeriksaan[i].jenisPemeriksaan
+        + "','"
+        + dataPemeriksaan[i].kategoriPemeriksaan
+        + "','"
+        + dataPemeriksaan[i].subKategori
+        + "')"
+
+        if( i !== dataPemeriksaanLength - 1) {
+            queryInsertPemeriksaan = queryInsertPemeriksaan + ","
+        }
+    }
+
     for(let i = 0; i < dataPemeriksaanLength; i++) {
         let dataPertanyaanLength = dataPemeriksaan[i].pertanyaan.length
         let dt = dataPemeriksaan[i]
-
-        console.log("this one " + dataPertanyaanLength)
 
         for(let d = 0; d < dataPertanyaanLength; d++) {
             queryInsertQuest = queryInsertQuest + "('"
             queryInsertQuest = queryInsertQuest + dataChecklist.noST
             + "','"
             + dataChecklist.idST
+            + "','"
+            + dt.idPemeriksaan
             + "','"
             + dt.pertanyaan[d].idPertanyaan
             + "','"
@@ -130,7 +197,6 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
             + "')"
 
             if(d !== dataPertanyaanLength - 1) {
-                console.log('yang ini')
                 queryInsertQuest = queryInsertQuest + ","
             }
         }
@@ -143,6 +209,7 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
     try{
         db.transaction(
             tx => {
+                tx.executeSql(queryInsertPemeriksaan)
                 tx.executeSql(queryInsertChecklist)
                 tx.executeSql(queryInsertQuest)
             }, function(error) {
@@ -170,5 +237,6 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
 
 export {
     Model,
-    ModelInsertChecklist
+    ModelInsertChecklist,
+    ModelGetDataEditChecklist
 }

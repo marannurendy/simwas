@@ -10,6 +10,7 @@ import { PostSuratTugas } from '../../../config/conf'
 import flashNotification from '../../actions/alert'
 
 import { Header } from '../../assets/layout'
+import { VERSION } from '../../../config/conf'
 
 const Dimension = Dimensions.get('window')
 
@@ -52,6 +53,8 @@ const SuratTugas = () => {
     useEffect(() => {
         const unsubscribe  = Navigation.addListener('focus', async () => {
             fetchData()
+
+            console.log(VERSION)
         })
         return unsubscribe
     }, [])
@@ -98,6 +101,8 @@ const SuratTugas = () => {
         const data = await getDataSync()
         const token = await AsyncStorage.getItem('token')
 
+        console.log(JSON.stringify(data))
+
         const timeOut = (milisecond, promise) => {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -107,85 +112,102 @@ const SuratTugas = () => {
             })
         }
 
-        try{
-            timeOut(60000, fetch(PostSuratTugas, {
-                method: 'POST',
-                headers: {
-                    Authorization: token,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                    },
-                body: JSON.stringify(data)
-            }))
-            .then((response) => response.json())
-            .then((responseJson) => {
-                console.log(responseJson)
-                if(responseJson.responseCode === 200) {
-                    Alert.alert(
-                        'Berhasil',
-                        'Data berhasil di Submit !',
-                        [
-                            {
-                                text: 'Ok',
-                                onPress: () => {
-                                    let queryCek = `SELECT * FROM ListSTSV WHERE syncBy = '` + username + `' AND stat IS NOT NULL`
-                                    try{
-                                        db.transaction(
-                                            tx => {
-                                                tx.executeSql(queryCek, [], (tx, results) => {
-                                                    let a = results.rows.length
-
-                                                    let queryUpdate = `UPDATE ListSTSV SET stat = null WHERE No IN (`
-                                                    for(let i = 0; i < a; i++) {
-                                                        let data = results.rows.item(i)
-
-                                                        queryUpdate = queryUpdate + data.No
-
-                                                        if(i !== a - 1) {
-                                                            queryUpdate = queryUpdate + ','
-                                                        }
-                                                    }
-
-                                                    queryUpdate = queryUpdate + ');'
-                                                    
+        Alert.alert(
+            'Info !',
+            'Apakah Anda yakin ingin melakukan sync data ?',
+            [
+                {
+                    text: 'Batal',
+                    onPress: () => {
+                        setIsLoading(false)
+                    }
+                },
+                {
+                    text: 'Ya',
+                    onPress: () => {
+                        try{
+                            timeOut(60000, fetch(PostSuratTugas, {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: token,
+                                    Accept: 'application/json',
+                                    'Content-Type': 'application/json'
+                                    },
+                                body: JSON.stringify(data)
+                            }))
+                            .then((response) => response.json())
+                            .then((responseJson) => {
+                                console.log(responseJson)
+                                if(responseJson.responseCode === 200) {
+                                    Alert.alert(
+                                        'Berhasil',
+                                        'Data berhasil di Submit !',
+                                        [
+                                            {
+                                                text: 'Ok',
+                                                onPress: () => {
+                                                    let queryCek = `SELECT * FROM ListSTSV WHERE syncBy = '` + username + `' AND stat IS NOT NULL`
                                                     try{
                                                         db.transaction(
                                                             tx => {
-                                                                tx.executeSql(queryUpdate)
-                                                            }, function(error) {
-                                                                setIsLoading(false)
-                                                                alert(error.message)
-                                                            }, function() {
-                                                                flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
-                                                                setIsLoading(false)
+                                                                tx.executeSql(queryCek, [], (tx, results) => {
+                                                                    let a = results.rows.length
+                
+                                                                    let queryUpdate = `UPDATE ListSTSV SET stat = null WHERE No IN (`
+                                                                    for(let i = 0; i < a; i++) {
+                                                                        let data = results.rows.item(i)
+                
+                                                                        queryUpdate = queryUpdate + data.No
+                
+                                                                        if(i !== a - 1) {
+                                                                            queryUpdate = queryUpdate + ','
+                                                                        }
+                                                                    }
+                
+                                                                    queryUpdate = queryUpdate + ');'
+                                                                    
+                                                                    try{
+                                                                        db.transaction(
+                                                                            tx => {
+                                                                                tx.executeSql(queryUpdate)
+                                                                            }, function(error) {
+                                                                                setIsLoading(false)
+                                                                                alert(error.message)
+                                                                            }, function() {
+                                                                                flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
+                                                                                setIsLoading(false)
+                                                                            }
+                                                                        )
+                                                                    }catch(error) {
+                                                                        setIsLoading(false)
+                                                                        alert(error.message)
+                                                                    }
+                                                                })
                                                             }
                                                         )
                                                     }catch(error) {
                                                         setIsLoading(false)
-                                                        alert(error.message)
                                                     }
-                                                })
+                                                }
                                             }
-                                        )
-                                    }catch(error) {
-                                        setIsLoading(false)
-                                    }
+                                        ]
+                                    )
+                                }else{
+                                    flashNotification("Caution !", responseJson.responseCode + '-' + responseJson.message, "#FA8D49", "#fff")
+                                    setIsLoading(false)
                                 }
-                            }
-                        ]
-                    )
-                }else{
-                    flashNotification("Caution !", responseJson.responseCode + '-' + responseJson.message, "#FA8D49", "#fff")
-                    setIsLoading(false)
+                            }).catch((error) => {
+                                console.log(error.message)
+                                setIsLoading(false)
+                            })
+                        }catch(error){
+                            console.log(error.message)
+                            setIsLoading(false)
+                        }
+                    }
                 }
-            }).catch((error) => {
-                console.log(error.message)
-                setIsLoading(false)
-            })
-        }catch(error){
-            console.log(error.message)
-            setIsLoading(false)
-        }
+            ]
+        )
     }
 
     const getDataSync = () => ( new Promise((resolve, reject) => {
@@ -353,13 +375,14 @@ const SuratTugas = () => {
             ) }
 
             <View style={{ flexDirection: 'row'}}>
-                <TouchableOpacity style={{ flex: 3, alignItems: 'center', borderBottomStartRadius: 10, borderTopStartRadius: 10, padding: 5, backgroundColor: '#0085E5' }}>
+                {/* <TouchableOpacity style={{ flex: 3, alignItems: 'center', borderBottomStartRadius: 10, borderTopStartRadius: 10, padding: 5, backgroundColor: '#0085E5' }}>
                     <Ionicons name='eye' size={20} color="#FFF" />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 {data.Approval_Flag === '1' ? (
                     <View></View>
                 ) : (
-                    <TouchableOpacity onPress={() => Navigation.navigate('EditSuratTugas', {register : data.No})} style={{ flex: 3, alignItems: 'center', borderBottomEndRadius: 10, borderTopEndRadius: 10, padding: 5, backgroundColor: '#41BA90' }}>
+                    <TouchableOpacity onPress={() => Navigation.navigate('EditSuratTugas', {register : data.No})} style={{ flex: 3, alignItems: 'center', borderRadius: 10, padding: 5, backgroundColor: '#41BA90' }}>
+                    {/* <TouchableOpacity onPress={() => Navigation.navigate('EditSuratTugas', {register : data.No})} style={{ flex: 3, alignItems: 'center', borderBottomEndRadius: 10, borderTopEndRadius: 10, padding: 5, backgroundColor: '#41BA90' }}> */}
                         <Ionicons name='pencil' size={20} color="#FFF" />
                     </TouchableOpacity>
                 )}

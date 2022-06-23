@@ -215,6 +215,7 @@ db.transaction(tx => {
         `create table if not exists InputListChecklist(
             NoST varchar,
             IdST varchar,
+            IdPemeriksaan varchar,
             idPertanyaan varchar,
             Sample varchar,
             Temuan varchar,
@@ -224,6 +225,17 @@ db.transaction(tx => {
             type varchar,
             stat varchar
         );`
+    )
+
+    tx.executeSql(
+        `create table if not exists ListPemeriksaan(
+            NoST varchar,
+            IdST varchar,
+            IdPemeriksaan varchar,
+            JenisPememeriksaan varchar,
+            KategoriPemeriksaan varchar,
+            SubKategori varchar
+        )`
     )
 
     tx.executeSql(
@@ -246,6 +258,31 @@ db.transaction(tx => {
         );`
     )
 
+    tx.executeSql(
+        `create table if not exists ListSiapTL(
+            Id INTEGER PRIMARY KEY, 
+            IdST varchar, 
+            NoST varchar,
+            Tgl_Target varchar,
+            Tahun varchar,
+            IdPertanyaan varchar,
+            Keterangan varchar,
+            stat varchar,
+            tindak_lanjut varchar)
+        ;`
+    );
+
+    tx.executeSql(
+        `create table if not exists OptionSTCL(
+            IdST varchar UNIQUE, 
+            NoST varchar,
+            Tgl varchar,
+            Tahun varchar,
+            Keterangan varchar,
+            tindak_lanjut varchar)
+        ;`
+    );
+
     // tx.executeSql('DROP TABLE IF EXISTS ListKodeCLKA')
     // tx.executeSql('DROP TABLE IF EXISTS OptionSVKC')
     // tx.executeSql('DROP TABLE IF EXISTS OptionSTAM')
@@ -263,6 +300,9 @@ db.transaction(tx => {
     // tx.executeSql('DROP TABLE IF EXISTS ListChecklist')
     // tx.executeSql('DROP TABLE IF EXISTS ListSTChecklist')
     // tx.executeSql('DROP TABLE IF EXISTS InputListChecklist')
+    // tx.executeSql('DROP TABLE IF EXISTS ListPemeriksaan')
+    // tx.executeSql('DROP TABLE IF EXISTS ListSiapTL')
+    // tx.executeSql('DROP TABLE IF EXISTS OptionSTCL')
 
 },function(error) {
     console.log('Transaction ERROR: ' + error.message);

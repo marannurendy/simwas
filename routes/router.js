@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { createDrawerNavigator, DrawerItem, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login, InputChecklist } from '../source'
+import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login, InputChecklist, EditChecklist, DetailTindakLanjut } from '../source'
 import { DrawerLayoutAndroid } from 'react-native-gesture-handler'
 
 import db from '../config/database'
@@ -50,6 +50,10 @@ const Router = () => {
                                 tx.executeSql('DELETE FROM Jawaban')
                                 tx.executeSql('DELETE FROM ListChecklist')
                                 tx.executeSql('DELETE FROM ListSTChecklist')
+                                tx.executeSql('DELETE FROM InputListChecklist')
+                                tx.executeSql('DELETE FROM ListPemeriksaan')
+                                tx.executeSql('DELETE FROM ListSiapTL')
+                                tx.executeSql('DELETE FROM OptionSTCL')
                             },function(error) {
                                 alert('Transaction ERROR: ' + error.message)
                             }, async function() {
@@ -96,9 +100,11 @@ const Router = () => {
                 {/* CHECKLIST */}
                 <Stack.Screen name='Checklist' component={Checklist} options={{ headerShown : false }} />
                 <Stack.Screen name='InputChecklist' component={InputChecklist} options={{ headerShown : false }} />
+                <Stack.Screen name='EditChecklist' component={EditChecklist} options={{ headerShown: false }} />
 
                 {/* TINDAKLANJUT */}
                 <Stack.Screen name='TindakLanjut' component={TindakLanjut} options={{ headerShown : false }} />
+                <Stack.Screen name='DetailTindakLanjut' component={DetailTindakLanjut} options={{ headerShown : false }} />
 
                 {/* PEMBINAAN */}
                 <Stack.Screen name='Pembinaan' component={Pembinaan} options={{ headerShown : false }} />
