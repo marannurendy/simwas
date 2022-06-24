@@ -64,10 +64,10 @@ const TindakLanjut = () => {
         const token = await AsyncStorage.getItem('token')
         let dttoken = token
 
-        let query = "SELECT DISTINCT * FROM OptionSTCL "
+        let query = "SELECT DISTINCT * FROM OptionSTCL ORDER BY NoST DESC"
         const data = await SelectDataSuratTugas(query)
 
-        let query1 = "SELECT * FROM ListSiapTL where stat='1' "
+        let query1 = "SELECT * FROM ListSiapTL where stat='1' ORDER BY NoST DESC"
         const data1 = await SelectDataSuratTugas(query1)
 
         setDataSync(data1.length)

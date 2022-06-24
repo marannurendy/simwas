@@ -22,6 +22,7 @@ const Router = () => {
         const Logout = async () => {    
             AsyncStorage.removeItem('token');
             AsyncStorage.removeItem('user_data');
+            AsyncStorage.removeItem('syncStat');
     
             Navigation.replace('Login')
         }

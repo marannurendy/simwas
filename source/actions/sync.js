@@ -1,6 +1,6 @@
 import db from "../../config/database"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { ToastAndroid, Alert } from "react-native"
+import { Alert, ToastAndroid } from "react-native"
 import { 
     GetListKodeCLKA,
     GetOptionSVKC,
@@ -21,32 +21,6 @@ const getSyncData = (params) => new Promise( async (resolve) => {
 
     const year = moment().format('YYYY')
     // const year = '2021'
-
-    const statusSync = await AsyncStorage.getItem('syncStat')
-    if(statusSync === 'true') {
-        Alert.alert(
-            'Caution !',
-            'Apakah anda yakin akan sync data ? Seluruh data yang ada di perangkat akan di hapus',
-            [
-                {
-                    text: 'Batal',
-                    onPress: () => {
-                        resolve('Data tidak di hapus')
-                    }
-                },
-                {
-                    text: 'Ya',
-                    onPress: () => {
-                        truncat()
-                        resolve(syncFetch())
-                    }
-                }
-            ]
-        )
-    }else{
-        AsyncStorage.setItem('syncStat', 'true')
-        resolve(syncFetch())
-    }
 
     const truncat = (reject, source) => {
         if (__DEV__) console.log('ACTIONS GET SYNC DATA TRUNCAT LOADED');
@@ -1109,6 +1083,7 @@ const getSyncData = (params) => new Promise( async (resolve) => {
         }
     })
 
+    //TINDAK LANJUT
     const InsertNotYetTL = (responseJson) => new Promise ((resolve, reject) => {
         try{
             if(responseJson.data !== null) {
@@ -1387,7 +1362,32 @@ const getSyncData = (params) => new Promise( async (resolve) => {
         return 'SUCCESS'
     }
 
-    // resolve(syncFetch())
+    const syncStat = await AsyncStorage.getItem('syncStat')
+
+    if(syncStat === 'true') {
+        Alert.alert(
+            'Perhatian !',
+            'Apakah anda yakin akan melakukan sync data ? semua data yang sudah di input akan di hapus',
+            [
+                {
+                    text: 'Batal',
+                    onPress: () => {
+                        resolve('Sync batal')
+                    }
+                },
+                {
+                    text: 'Ya',
+                    onPress: () => {
+                        truncat()
+                        resolve(syncFetch())
+                    }
+                }
+            ]
+        )
+    }else{
+        AsyncStorage.setItem('syncStat', 'true')
+        resolve(syncFetch())
+    }
 })
 
 export default getSyncData

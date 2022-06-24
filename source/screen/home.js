@@ -129,7 +129,7 @@ const Home = () => {
                 getTotal()
                 setLoading(false)
             }else{
-                flashNotification("Caution !", responseJson, "#41BA90", "#fff")
+                flashNotification("Caution !", responseJson, "#FF7900", "#fff")
                 setLoading(false)
             }
         }).catch((error) => {
