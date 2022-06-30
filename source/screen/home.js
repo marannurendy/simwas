@@ -47,6 +47,8 @@ const Home = () => {
         const userdt = await AsyncStorage.getItem('user_data')
         let dt = JSON.parse(userdt)
 
+        console.log(dt)
+
         let typedt = '0'
 
         if  (dt.role === 'RPM') {

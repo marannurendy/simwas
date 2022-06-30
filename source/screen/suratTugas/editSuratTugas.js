@@ -300,7 +300,7 @@ const EditSuratTugas = (props) => {
                             )}
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
-                            <Text>Nama Cabang</Text>
+                            <Text>Nama Unit</Text>
                             <View style={{ width: Dimension.width/2 }}>
                                 <DropDownPicker
                                     open={open}

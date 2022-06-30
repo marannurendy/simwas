@@ -359,7 +359,7 @@ const SuratTugas = () => {
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                         <View style={{ flex: 2 }}>
-                            <Text style={{ fontWeight: 'bold' }}>Cabang</Text>
+                            <Text style={{ fontWeight: 'bold' }}>Unit</Text>
                         </View>
                         <View style={{ flex: 4 }}>
                             <Text numberOfLines={1}>: {data.idCabangDiperiksa + ' - ' + data.keterangan}</Text>

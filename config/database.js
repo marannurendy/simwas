@@ -221,6 +221,7 @@ db.transaction(tx => {
             Temuan varchar,
             DetailTemuan varchar,
             Scoring varchar,
+            Rekomendasi varchar,
             syncBy vachar,
             type varchar,
             stat varchar

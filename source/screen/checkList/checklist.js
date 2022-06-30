@@ -60,7 +60,7 @@ const Checklist = () => {
         }
         query = query + ' ORDER BY NoST DESC'
 
-        console.log(query)
+        // console.log(query)
         setRole(dt.role)
 
         const data = await SelectDataListChecklist(query)
@@ -86,7 +86,7 @@ const Checklist = () => {
                             arr.push(newData)
                         }
 
-                        console.log(arr)
+                        // console.log(arr)
                         setData(arr)
                         setDt(arr)
                         resolve('SUCCESS')
@@ -220,7 +220,9 @@ const Checklist = () => {
             a.idPertanyaan as id_pertanyaan,
             a.Sample,
             a.Temuan,
+            a.DetailTemuan,
             a.Scoring,
+            a.Rekomendasi,
             a.syncBy as Username
             FROM InputListChecklist a
             INNER JOIN ListChecklist b ON a.NoST = b.NoST

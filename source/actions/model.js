@@ -82,6 +82,7 @@ const ModelGetDataEditChecklist = (type, register, param) => (new Promise((resol
         Temuan,
         DetailTemuan,
         Scoring,
+        Rekomendasi,
         syncBy,
         type
         stat FROM InputListChecklist WHERE NoST = '` + register + `';`
@@ -133,6 +134,7 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
         Temuan,
         DetailTemuan,
         Scoring,
+        Rekomendasi,
         syncBy,
         type,
         stat
@@ -188,6 +190,8 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
             + dt.pertanyaan[d].detailTemuan
             + "','"
             + dt.pertanyaan[d].scoring
+            + "','"
+            + dt.pertanyaan[d].rekomendasi
             + "','"
             + param.username
             + "','"

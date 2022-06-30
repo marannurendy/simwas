@@ -50,6 +50,7 @@ const InputChecklist = () => {
                     jumlahSample: '',
                     jumlahTemuan: '',
                     detailTemuan: '',
+                    rekomendasi: '',
                     scoring: ''
                 }
             ]
@@ -99,7 +100,7 @@ const InputChecklist = () => {
 
         let test = `SELECT * FROM ListPemeriksaan`
         const test1 = await selectMaster(test)
-        console.log(test1)
+        // console.log(test1)
 
         const masterST = await selectMaster(queryGetMasterST)
         if(masterST.status === 'ERROR') {
@@ -254,6 +255,7 @@ const InputChecklist = () => {
                 jumlahSample: '',
                 jumlahTemuan: '',
                 detailTemuan: '',
+                rekomendasi: '',
                 scoring: ''
             }
         ]
@@ -298,7 +300,9 @@ const InputChecklist = () => {
                     idPertanyaan: '',
                     jumlahSample: '',
                     jumlahTemuan: '',
-                    detailTemuan: ''
+                    detailTemuan: '',
+                    rekomendasi: '',
+                    scoring: ''
                 }
             ]
         }
@@ -345,7 +349,9 @@ const InputChecklist = () => {
             idPertanyaan: '',
             jumlahSample: '',
             jumlahTemuan: '',
-            detailTemuan: ''
+            detailTemuan: '',
+            rekomendasi: '',
+            scoring: ''
         }
 
         let newData = [...inputList]
@@ -488,7 +494,7 @@ const InputChecklist = () => {
                         </View>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
-                        <Text>Nama Cabang</Text>
+                        <Text>Nama Unit</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
                                 numberOfLines={1}
@@ -502,7 +508,7 @@ const InputChecklist = () => {
                         <Text>Tanggal Input</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
-                                value={moment(dataInput.Tgl).format('L')}
+                                value={moment(dataInput.Tgl).format("DD-MM-YYYY")}
                                 style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
                                 editable={false}
                             />
@@ -512,7 +518,7 @@ const InputChecklist = () => {
                         <Text>Tanggal Awal</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
-                                value={moment(dataInput.tglMulai).format('L')}
+                                value={moment(dataInput.tglMulai).format("DD-MM-YYYY")}
                                 style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
                                 editable={false}
                             />
@@ -522,7 +528,18 @@ const InputChecklist = () => {
                         <Text>Tanggal Akhir</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
-                                value={moment(dataInput.tglSelesai).format('L')}
+                                value={moment(dataInput.tglSelesai).format("DD-MM-YYYY")}
+                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                editable={false}
+                            />
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
+                        <Text>Tanggal Target</Text>
+                        <View style={{ width: Dimension.width/2 }} >
+                            <TextInput
+                                value={moment(dataInput.tglSelesai).add(30, 'days').format("DD-MM-YYYY")}
+                                // value={moment(dataInput.tglSelesai).format('L')}
                                 style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
                                 editable={false}
                             />
@@ -691,7 +708,7 @@ const InputChecklist = () => {
                                                                         </View>
                                                                     </View>
 
-                                                                    <View style={{ flexDirection: 'row' }}>
+                                                                    <View style={{ flexDirection: 'row', marginBottom: 10 }}>
                                                                         <View style={{ flex: 2}} >
                                                                             <Text style={{ fontSize: 15 }}>Detail Temuan</Text>
                                                                         </View>
@@ -706,6 +723,29 @@ const InputChecklist = () => {
                                                                                     onChangeText={(val) => {
                                                                                         let newData = [...inputList]
                                                                                         inputList[i].pertanyaan[idx].detailTemuan = val
+                                                                                        setInputList(newData)
+                                                                                    }}
+                                                                                    blurOnSubmit={true}
+                                                                                />
+                                                                            </View>
+                                                                        </View>
+                                                                    </View>
+
+                                                                    <View style={{ flexDirection: 'row' }}>
+                                                                        <View style={{ flex: 2}} >
+                                                                            <Text style={{ fontSize: 15 }}>Rekomendasi</Text>
+                                                                        </View>
+                                                                        <View style={{ flex: 3}} >
+                                                                            <View style={{ borderWidth: 1, borderRadius: 5 }}>
+                                                                                <TextInput
+                                                                                    value={inputList[i].pertanyaan[idx].rekomendasi}
+                                                                                    placeholder='Masukkan rekomendasi'
+                                                                                    numberOfLines={5}
+                                                                                    multiline={true}
+                                                                                    style={{ marginHorizontal: 10 }}
+                                                                                    onChangeText={(val) => {
+                                                                                        let newData = [...inputList]
+                                                                                        inputList[i].pertanyaan[idx].rekomendasi = val
                                                                                         setInputList(newData)
                                                                                     }}
                                                                                     blurOnSubmit={true}

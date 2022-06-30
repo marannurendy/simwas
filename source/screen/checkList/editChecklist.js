@@ -191,6 +191,14 @@ const EditChecklist = (props) => {
                 }
             ]
         }
+
+        let det = {
+            idPemeriksaan: '',
+            jenisPemeriksaan: '',
+            kategoriPemeriksaan: '',
+            subKategori: '',
+            pertanyaan: []
+        }
         
         try{
             db.transaction(
@@ -202,7 +210,7 @@ const EditChecklist = (props) => {
                         for(let a = 0; a < dataLen; a++) {
                             let dt = results.rows.item(a)
 
-                            let det = {
+                            det = {
                                 idPemeriksaan: dt.IdPemeriksaan,
                                 jenisPemeriksaan: dt.JenisPememeriksaan,
                                 kategoriPemeriksaan: dt.KategoriPemeriksaan,
@@ -222,29 +230,34 @@ const EditChecklist = (props) => {
                                             let u = results.rows.item(x)
         
                                             arrHelp.push(u)
+                                            // det.pertanyaan.push(u)
                                         }
-                                        console.log("holy shit")
-                                        console.log(det)
+                                        // console.log("holy shit")
+                                        // console.log(arrHelp)
+                                        det.pertanyaan.push(arrHelp)
+                                        // det.pertanyaan.push(arrHelp)
                                         // det[a].pertanyaan.push(arr)
                                     })
                                 }, function(error) {
                                     console.log(error.message)
+                                }, function() {
+                                    console.log("yang ini bang")
+                                    console.log(det)
+                                    // arr.push(det)
+                                    // response.data.push(det)
                                 }
                             )
 
-                            // console.log(query)
+                            // console.log("ini bang")
+                            // console.log(det)
 
-                            arr.push(det)
+                            // arr.push(det)
                         }
 
-                        console.log("this")
-                        console.log(arr)
+                        // console.log("this is it")
+                        // console.log(arr)
 
-                        response = {
-                            status : 'SUCCESS',
-                            data: arr
-                        }
-                        resolve(response)
+                        
                     })
                 }, function(error) {
                     response = {
@@ -252,6 +265,9 @@ const EditChecklist = (props) => {
                         data: error.message
                     }
                     reject(response)
+                }, function() {
+                    console.log("sampai disini")
+                    console.log(det)
                 }
             )
         }catch(error){
