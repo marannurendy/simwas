@@ -646,25 +646,6 @@ const InputChecklist = () => {
                                                                 </View>
                                                             </View>
 
-                                                            {inputList[i].jenisPemeriksaan === '2' ? (
-                                                                <View>
-                                                                    <Text style={{ fontSize: 15 }}>Jawaban : </Text>
-                                                                    <View style={{ ustifyContent: 'flex-end', marginBottom: 20 }}>
-                                                                        <View style={{ borderBottomWidth: 1, marginLeft: 10 }} >
-                                                                            <Picker
-                                                                                selectedValue={inputList[i].pertanyaan[idx].scoring}
-                                                                                onValueChange={(val) => jawabanChangeHandler(val, i, idx)}
-                                                                                style={{ fontSize: 10 }}
-                                                                            >
-                                                                                <Picker.Item label={'Silahkan Pilih'} value={''} />
-                                                                                {jawaban.map((item, index) => (
-                                                                                    <Picker.Item label={item.label} value={item.value} key={index} />
-                                                                                ))}
-                                                                            </Picker>
-                                                                        </View>
-                                                                    </View>
-                                                                </View>
-                                                            ) : (
                                                                 <View>
                                                                     <View style={{ flexDirection: 'row', marginBottom: 10 }}>
                                                                         <View style={{ flex: 2 }}>
@@ -754,7 +735,6 @@ const InputChecklist = () => {
                                                                         </View>
                                                                     </View>
                                                                 </View>
-                                                            )}
                                                             
                                                         </View>
                                                     </View>

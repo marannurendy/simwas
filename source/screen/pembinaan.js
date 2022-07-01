@@ -31,7 +31,7 @@ const Pembinaan = () => {
             <View style={{ marginTop: 20, marginHorizontal: 10 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image source={require('../assets/icon/Pembinaan-small.png')} />
-                    <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >Data Pembianaan</Text>
+                    <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >Data Pembinaan</Text>
                 </View>
             </View>
         )
