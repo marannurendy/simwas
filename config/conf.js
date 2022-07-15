@@ -61,6 +61,7 @@ let GetOptionSTCL = `${baseChecklist}/GetOptionSTCL`
 let GetOptionSTCLAM = `${baseChecklist}/GetOptionSTCLAM`
 let GetOptionSTCLKC = `${baseChecklist}/GetOptionSTCLKC`
 let GetListNotYetTL = `${baseChecklist}/GetListNotYetTL`
+let GetListDetailCL = `${baseChecklist}/GETLISTDETAILCL`
 
 // POST SURAT TUGAS
 let PostNoLapAM = `${base_url}/${api_version}/surattugas/PostNoLapAM`
@@ -100,5 +101,6 @@ export {
     PostCheckList,
     GetListInputanCeklist,
     GetListNotYetTL,
-    PostTindakLanjut
+    PostTindakLanjut,
+    GetListDetailCL
 }

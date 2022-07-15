@@ -368,6 +368,7 @@ const InputChecklist = () => {
     }
 
     const onSelectListST = (item) => {
+        console.log(item)
         setDataInput(item)
     }
 
@@ -379,9 +380,9 @@ const InputChecklist = () => {
             idST : dataInput.IdST,
             cabang : dataInput.Cabang,
             keterangan : dataInput.keterangan,
-            tgl : moment(dataInput.Tgl).format('L'),
-            tglMulai : moment(dataInput.tglMulai).format('L'),
-            tglSelesai : moment(dataInput.tglSelesai).format('L')
+            tgl : dataInput.Tgl,
+            tglMulai : dataInput.tglMulai,
+            tglSelesai : dataInput.tglSelesai
 
         }
 
@@ -402,29 +403,40 @@ const InputChecklist = () => {
                 let questLength = inputList[a].pertanyaan.length
                 let currrentData = inputList[a]
 
-                if(currrentData.jenisPemeriksaan === '1') {
-                    for(let i = 0; i < questLength; i++) {
-                        if(currrentData.pertanyaan[i].idPertanyaan === '' || currrentData.pertanyaan[i].jumlahSample === '' || currrentData.pertanyaan[i].jumlahTemuan === '') {
-                            Alert.alert(
-                                'Peringatan',
-                                'Data pertanyaan nomor ' + no + ' belum lengkap'
-                            )
-    
-                            return false
-                        }
-                    }
-                }else if(currrentData.jenisPemeriksaan === '2') {
-                    for(let i = 0; i < questLength; i++) {
-                        if(currrentData.pertanyaan[i].scoring === '') {
-                            Alert.alert(
-                                'Peringatan',
-                                'Jawaban pertanyaan nomor ' + no + ' belum dipilih'
-                            )
-    
-                            return false
-                        }
+                for(let i = 0; i < questLength; i++) {
+                    if(currrentData.pertanyaan[i].idPertanyaan === '' || currrentData.pertanyaan[i].jumlahSample === '' || currrentData.pertanyaan[i].jumlahTemuan === '') {
+                        Alert.alert(
+                            'Peringatan',
+                            'Data pertanyaan nomor ' + no + ' belum lengkap'
+                        )
+
+                        return false
                     }
                 }
+
+                // if(currrentData.jenisPemeriksaan === '1') {
+                //     for(let i = 0; i < questLength; i++) {
+                //         if(currrentData.pertanyaan[i].idPertanyaan === '' || currrentData.pertanyaan[i].jumlahSample === '' || currrentData.pertanyaan[i].jumlahTemuan === '') {
+                //             Alert.alert(
+                //                 'Peringatan',
+                //                 'Data pertanyaan nomor ' + no + ' belum lengkap'
+                //             )
+    
+                //             return false
+                //         }
+                //     }
+                // }else if(currrentData.jenisPemeriksaan === '2') {
+                //     for(let i = 0; i < questLength; i++) {
+                //         if(currrentData.pertanyaan[i].scoring === '') {
+                //             Alert.alert(
+                //                 'Peringatan',
+                //                 'Jawaban pertanyaan nomor ' + no + ' belum dipilih'
+                //             )
+    
+                //             return false
+                //         }
+                //     }
+                // }
 
             }
         }
@@ -587,6 +599,7 @@ const InputChecklist = () => {
                                                         selectedValue={inputList[i].kategoriPemeriksaan}
                                                         onValueChange={(val, idx) => kategoriPemeriksaanChangeHandler(val, i)}
                                                         style={{ fontSize: 10 }}
+                                                        enabled={inputList[i].jenisPemeriksaan === '' ? false : true}
                                                     >
                                                         <Picker.Item label={'Silahkan Pilih'} value={''} />
                                                         {kategoriPemeriksaan[i].map((item, index) => (
@@ -605,6 +618,7 @@ const InputChecklist = () => {
                                                         selectedValue={inputList[i].subKategori}
                                                         onValueChange={(val, idx) => subKategoriChangeHandler(val, i)}
                                                         style={{ fontSize: 10 }}
+                                                        enabled={inputList[i].kategoriPemeriksaan === '' ? false : true}
                                                     >
                                                         <Picker.Item label={'Silahkan Pilih'} value={''} />
                                                         {subKategori[i].map((item, index) => (
@@ -637,6 +651,7 @@ const InputChecklist = () => {
                                                                         selectedValue={inputList[i].pertanyaan[idx].idPertanyaan}
                                                                         onValueChange={(val) => pertanyaanChangeHandler(val, i, idx)}
                                                                         style={{ fontSize: 10 }}
+                                                                        enabled={inputList[i].subKategori === '' ? false : true}
                                                                     >
                                                                         <Picker.Item label={'Silahkan Pilih'} value={''} />
                                                                         {pertanyaan[i].map((item, index) => (

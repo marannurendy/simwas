@@ -215,6 +215,8 @@ db.transaction(tx => {
         `create table if not exists InputListChecklist(
             NoST varchar,
             IdST varchar,
+            DefinisiSample varchar,
+            DefinisiTemuan varchar,
             IdPemeriksaan varchar,
             idPertanyaan varchar,
             Sample varchar,

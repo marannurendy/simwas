@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { createDrawerNavigator, DrawerItem, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login, InputChecklist, EditChecklist, DetailTindakLanjut } from '../source'
+import { Home, SuratTugas, InputSuratTugas, EditSuratTugas, Checklist, TindakLanjut, Pembinaan, Login, InputChecklist, EditChecklist, DetailTindakLanjut, ViewChecklist } from '../source'
 import { DrawerLayoutAndroid } from 'react-native-gesture-handler'
 
 import db from '../config/database'
@@ -102,6 +102,7 @@ const Router = () => {
                 <Stack.Screen name='Checklist' component={Checklist} options={{ headerShown : false }} />
                 <Stack.Screen name='InputChecklist' component={InputChecklist} options={{ headerShown : false }} />
                 <Stack.Screen name='EditChecklist' component={EditChecklist} options={{ headerShown: false }} />
+                <Stack.Screen name='ViewChecklist' component={ViewChecklist} options={{ headerShown: false }} />
 
                 {/* TINDAKLANJUT */}
                 <Stack.Screen name='TindakLanjut' component={TindakLanjut} options={{ headerShown : false }} />

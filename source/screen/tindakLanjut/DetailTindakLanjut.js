@@ -79,11 +79,25 @@ const DetailTindakLanjut = ({route}) => {
         const token = await AsyncStorage.getItem('token')
         let dttoken = token
         
-        let query = "SELECT A.*, B.Pertanyaan, C.Nama_Sub_Kategori FROM ListSiapTL A  "+
-                    "Left Join Pertanyaan B on A.IdPertanyaan = B.IdPertanyaan "+
-                    "Left Join SubKategori C on B.IdSubKategori = C.IdSubKategori "+
-                    "where IdST = "+route.params.IdST+""
+        let query = `SELECT
+                        A.Id,
+                        A.IdST,
+                        A.NoST,
+                        A.Tgl_Target,
+                        A.Tahun,
+                        A.IdPertanyaan,
+                        A.Keterangan,
+                        A.stat,
+                        CASE WHEN A.tindak_lanjut = "null" THEN "0" ELSE A.tindak_lanjut END as tindak_lanjut,
+                        B.Pertanyaan,
+                        C.Nama_Sub_Kategori
+                    FROM ListSiapTL A
+                    Left Join Pertanyaan B on A.IdPertanyaan = B.IdPertanyaan
+                    Left Join SubKategori C on B.IdSubKategori = C.IdSubKategori
+                    where IdST = "` + route.params.IdST +`"`
         const data = await SelectDataSuratTugas(query)
+
+        console.log(data)
 
         setRole(dt.role)
         setUsername(dt.username)
@@ -119,7 +133,7 @@ const DetailTindakLanjut = ({route}) => {
                     )
                 }
                 ToastAndroid.show("Save draft berhasil!", ToastAndroid.SHORT);
-                Navigation.replace("Home")
+                Navigation.goBack()
             }
         }
         catch(error){

@@ -105,6 +105,8 @@ const Checklist = () => {
         const data = await getDataSync()
         const token = await AsyncStorage.getItem('token')
 
+        console.log(data)
+
         const timeOut = (milisecond, promise) => {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -338,7 +340,7 @@ const Checklist = () => {
                 </View>
                 <View style={{ flexDirection: 'row' }}>
                     <View style={{ flex: 2 }}>
-                        <Text style={{ fontWeight: 'bold' }}>Cabang</Text>
+                        <Text style={{ fontWeight: 'bold' }}>Unit</Text>
                     </View>
                     <View style={{ flex: 4 }}>
                         <Text numberOfLines={1}>: {data.Cabang + ' - ' + data.Keterangan}</Text>
@@ -349,7 +351,7 @@ const Checklist = () => {
             <View style={{ borderBottomWidth: 1, marginVertical: 5, marginHorizontal: 10 }} />
 
             <View style={{ flexDirection: 'row'}}>
-                <TouchableOpacity style={{ flex: 3, alignItems: 'center', borderBottomStartRadius: 10, borderTopStartRadius: 10, padding: 5, backgroundColor: '#0085E5' }}>
+                <TouchableOpacity onPress={() => Navigation.navigate('ViewChecklist', {register : data.NoST})} style={{ flex: 3, alignItems: 'center', borderBottomStartRadius: 10, borderTopStartRadius: 10, padding: 5, backgroundColor: '#0085E5' }}>
                     <Ionicons name='eye' size={20} color="#FFF" />
                 </TouchableOpacity>
                 {data.Approval_Flag === '1' ? (

@@ -15,7 +15,7 @@ import flashNotification from '../../actions/alert'
 
 const Dimension = Dimensions.get('window')
 
-const EditChecklist = (props) => {
+const ViewChecklist = (props) => {
     const { register } = props.route.params
     const Navigation = useNavigation()
     const scrollRef = useRef()
@@ -160,7 +160,16 @@ const EditChecklist = (props) => {
         // let test1 = await selectMaster(test, register)
         // console.log(test1)
 
-        let queryDetailQuest = `SELECT DISTINCT * FROM ListPemeriksaan WHERE NoST = '` + register + `'`
+        let queryDetailQuest = `    SELECT DISTINCT 
+                                        a.*,
+                                        b.Tipe_Ceklist,
+                                        c.Nama_Kategori,
+                                        d.Nama_Sub_Kategori
+                                    FROM ListPemeriksaan a
+                                    INNER JOIN TipePemeriksaan b ON a.JenisPememeriksaan = b.Id
+                                    INNER JOIN MasterKategori c ON a.KategoriPemeriksaan = c.IdKategori
+                                    INNER JOIN SubKategori d ON a.SubKategori = d.IdSubKategori
+                                    WHERE NoST = '` + register + `'`
         let detailQuest = await selectMasterDetail(queryDetailQuest, register)
         if(detailQuest.status === 'ERROR') {
             alert(detailQuest.data)
@@ -252,7 +261,12 @@ const EditChecklist = (props) => {
                         for(let a = 0; a < dataLen; a++) {
                             let dt = results.rows.item(a)
 
-                            let queryQuest = `SELECT * FROM InputListChecklist WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `'`
+                            let queryQuest = `  SELECT
+                                                    a.*,
+                                                    b.Pertanyaan
+                                                FROM InputListChecklist a
+                                                INNER JOIN Pertanyaan b ON a.idPertanyaan = b.IdPertanyaan
+                                                WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `'`
                             let quest = await getQuestion(queryQuest)
 
                             if(a == 0) {
@@ -285,6 +299,9 @@ const EditChecklist = (props) => {
                                 jenisPemeriksaan: dt.JenisPememeriksaan,
                                 kategoriPemeriksaan: dt.KategoriPemeriksaan,
                                 subKategori: dt.SubKategori,
+                                namaJenisPemeriksaan: dt.Tipe_Ceklist,
+                                namaKategoriPemeriksaan: dt.Nama_Kategori,
+                                namaSubKategori: dt.Nama_Sub_Kategori,
                                 pertanyaan: quest
                             }
                             
@@ -388,15 +405,8 @@ const EditChecklist = (props) => {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     {/* <Image source={require('../assets/icon/Task-small.png')} /> */}
                     <Image source={require('../../assets/icon/Checklist-small.png')} />
-                    <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >Edit Checklist</Text>
+                    <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 16 }} >View data Checklist</Text>
                 </View>
-                <View style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
-                    <TouchableOpacity onPress={() => SaveHandler()} style={{ paddingVertical: 5, paddingHorizontal: 25, justifyContent: 'center', borderRadius: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#0085E5' }}>
-                        <Ionicons name="save" size={18} color="#FFF" style={{ marginHorizontal: 5 }} />
-                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Update</Text>
-                    </TouchableOpacity>
-                </View>
-                
             </View>
         )
     }
@@ -662,7 +672,7 @@ const EditChecklist = (props) => {
                             <TextInput
                                 numberOfLines={1}
                                 value={dataInput.NoST}
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                style={{ borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#0C0B0B' }}
                                 editable={false}
                             />
                         </View>
@@ -673,28 +683,18 @@ const EditChecklist = (props) => {
                             <TextInput
                                 numberOfLines={1}
                                 value={dataInput.Keterangan}
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                style={{ borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#0C0B0B' }}
                                 editable={false}
                             />
                         </View>
                     </View>
-                    {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
-                        <Text>Tanggal Input</Text>
-                        <View style={{ width: Dimension.width/2 }} >
-                            <TextInput
-                                value={moment(dataInput.Tgl).format('L')}
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
-                                editable={false}
-                            />
-                        </View>
-                    </View> */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } }>
                         <Text>Tanggal Awal</Text>
                         <View style={{ width: Dimension.width/2 }} >
                             <TextInput
                                 value={moment(dataInput.TglMulai).format("DD-MM-YYYY")}
                                 // value={dataInput.TglMulai}
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                style={{ borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#0C0B0B' }}
                                 editable={false}
                             />
                         </View>
@@ -705,7 +705,7 @@ const EditChecklist = (props) => {
                             <TextInput
                                 value={moment(dataInput.TglSelesai).format("DD-MM-YYYY")}
                                 // value={dataInput.TglSelesai}
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                style={{ borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#0C0B0B' }}
                                 editable={false}
                             />
                         </View>
@@ -716,104 +716,75 @@ const EditChecklist = (props) => {
                             <TextInput
                                 value={moment(dataInput.TglSelesai).add(30, 'days').format("DD-MM-YYYY")}
                                 // value={moment(dataInput.tglSelesai).format('L')}
-                                style={{ borderWidth: 1, borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#73777F' }}
+                                style={{ borderRadius: 10, padding: 5, backgroundColor: '#FFF', paddingHorizontal: 10, color: '#0C0B0B' }}
                                 editable={false}
                             />
                         </View>
                     </View>
 
                     <View style={{ justifyContent: 'space-between', marginTop: 20, flex: 1 } }>
-                        <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Pemeriksaan</Text>
-                        {/* <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                            <TouchableOpacity onPress={() => addFormHandler()} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#0085E5' }}>
-                                <Ionicons name="md-add-circle" size={26} color="white" />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => removeHandler()} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#FF6347' }}>
-                                <Ionicons name="remove-circle-outline" size={26} color="white" />
-                            </TouchableOpacity>
-                        </View> */}
-
                         {inputList.map((x, i) => {
                             return(
                                 <View key={i} style={{ marginBottom: i === inputList.length - 1 ? 0 : 12, borderColor: 'gray', backgroundColor: '#FFF', borderWidth: 1, borderRadius: 15, marginTop: 10, padding: 15, marginBottom: 20 }} >
-                                    <View>
-                                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                            <TouchableOpacity onPress={() => addFormHandler()} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#0085E5' }}>
-                                                <Ionicons name="md-add-circle" size={26} color="white" />
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => removeHandler(i)} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#FF6347' }}>
-                                                <Ionicons name="remove-circle-outline" size={26} color="white" />
-                                            </TouchableOpacity>
-                                        </View>
-                                        <View>
-                                            <Text style={{ fontSize: 15 }}>Jenis Pemeriksaan : </Text>
+                                    <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Pemeriksaan {i + 1}</Text>
+                                    <View style={{ marginTop: 15 }}>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems:'center' }}>
+                                            <Text style={{ fontSize: 15 }}>Jenis Pemeriksaan</Text>
                                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                                <View style={{ width: Dimension.width/1.5, borderBottomWidth: 1 }} >
+                                                <View style={{ width: Dimension.width/2.5 }} >
                                                     {jenisPemeriksaan[i] === undefined ? (
                                                         <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
                                                             <Text style={{ fontSize: 15 }}>Mohon Tunggu ...</Text>
                                                         </View>
                                                     ) : (
-                                                        <Picker
-                                                            selectedValue={inputList[i].jenisPemeriksaan}
-                                                            onValueChange={(val, idx) => jenisPemeriksaanChangeHandler(val, i)}
-                                                            style={{ fontSize: 10 }}
-                                                        >
-                                                            <Picker.Item label={'Silahkan Pilih'} value={''} />
-                                                            {jenisPemeriksaan[i].map((item, index) => (
-                                                                <Picker.Item label={item.label} value={item.value} key={index} />
-                                                            ))}
-                                                        </Picker>
+                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                            <Text>:</Text>
+                                                            <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                <Text style={{ fontSize: 15 }}>{inputList[i].namaJenisPemeriksaan}</Text>
+                                                            </View>
+                                                        </View>
                                                     )}
                                                     
                                                 </View>
                                             </View>
                                         </View>
                         
-                                        <View style={{ marginTop: 10 }}>
-                                            <Text style={{ fontSize: 15 }}>Kategori Pemeriksaan : </Text>
+                                        <View style={{ marginTop: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 15 }}>Kategori Pemeriksaan</Text>
                                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                                <View style={{ width: Dimension.width/1.5, borderBottomWidth: 1 }} >
+                                                <View style={{ width: Dimension.width/2.5 }} >
                                                     {kategoriPemeriksaan[i] === undefined ? (
                                                         <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
                                                             <Text style={{ fontSize: 15 }}>Mohon Tunggu ...</Text>
                                                         </View>
                                                     ) : (
-                                                        <Picker
-                                                            selectedValue={inputList[i].kategoriPemeriksaan}
-                                                            onValueChange={(val, idx) => kategoriPemeriksaanChangeHandler(val, i)}
-                                                            style={{ fontSize: 10 }}
-                                                        >
-                                                            <Picker.Item label={'Silahkan Pilih'} value={''} />
-                                                            {kategoriPemeriksaan[i].map((item, index) => (
-                                                                <Picker.Item label={item.label} value={item.value} key={index} />
-                                                            ))}
-                                                        </Picker>
+                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                            <Text>:</Text>
+                                                            <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                <Text style={{ fontSize: 15 }}>{inputList[i].namaKategoriPemeriksaan}</Text>
+                                                            </View>
+                                                        </View>
                                                     )}
                                                     
                                                 </View>
                                             </View>
                                         </View>
                         
-                                        <View style={{ marginTop: 10 }}>
-                                            <Text style={{ fontSize: 15 }}>Sub Kategori : </Text>
+                                        <View style={{ marginTop: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 15 }}>Sub Kategori</Text>
                                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                                <View style={{ width: Dimension.width/1.5, borderBottomWidth: 1 }} >
+                                                <View style={{ width: Dimension.width/2.5 }} >
                                                     {subKategori[i] === undefined ? (
                                                         <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
                                                             <Text style={{ fontSize: 15 }}>Mohon Tunggu ...</Text>
                                                         </View>
                                                     ) : (
-                                                        <Picker
-                                                        selectedValue={inputList[i].subKategori}
-                                                        onValueChange={(val, idx) => subKategoriChangeHandler(val, i)}
-                                                        style={{ fontSize: 10 }}
-                                                    >
-                                                        <Picker.Item label={'Silahkan Pilih'} value={''} />
-                                                        {subKategori[i].map((item, index) => (
-                                                            <Picker.Item label={item.label} value={item.value} key={index} />
-                                                        ))}
-                                                    </Picker>
+                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                            <Text>:</Text>
+                                                            <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                <Text style={{ fontSize: 15 }}>{inputList[i].namaSubKategori}</Text>
+                                                            </View>
+                                                        </View>
                                                     )}
                                                     
                                                 </View>
@@ -822,126 +793,82 @@ const EditChecklist = (props) => {
                                         
                                         <View style={{ marginTop: 30 }}>
                                             <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Pertanyaan</Text>
-                                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                                <TouchableOpacity onPress={() => addFormPertanyaanHandler(i)} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#0085E5' }}>
-                                                    <Ionicons name="md-add-circle" size={20} color="white" />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity onPress={() => removeFormPertanyaanHandler(i)} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#FF6347' }}>
-                                                    <Ionicons name="remove-circle-outline" size={20} color="white" />
-                                                </TouchableOpacity>
-                                            </View>
 
                                             {inputList[i].pertanyaan.map((y, idx) => {
                                                 return(
                                                     <View key={idx}>
                                                         <View style={{ flex: 1, borderWidth: 1, borderRadius: 10, marginTop: 20, padding: 10 }}>
-                                                            <Text style={{ fontSize: 15 }}>Pilih Pertanyaan : </Text>
-                                                            <View style={{ ustifyContent: 'flex-end', marginBottom: 20 }}>
-                                                                <View style={{ borderBottomWidth: 1, marginLeft: 10 }} >
+                                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                                <Text style={{ fontSize: 15 }}>Pertanyaan</Text>
+                                                                <View style={{ width: Dimension.width/2.5 }} >
                                                                     {pertanyaan[i] === undefined ? (
                                                                         <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
                                                                             <Text style={{ fontSize: 15 }}>Mohon Tunggu ...</Text>
                                                                         </View>
                                                                     ) : (
-                                                                        <Picker
-                                                                            selectedValue={inputList[i].pertanyaan[idx].idPertanyaan}
-                                                                            onValueChange={(val) => pertanyaanChangeHandler(val, i, idx)}
-                                                                            style={{ fontSize: 10 }}
-                                                                        >
-                                                                            <Picker.Item label={'Silahkan Pilih'} value={''} />
-                                                                            {pertanyaan[i].map((item, index) => (
-                                                                                <Picker.Item label={item.label} value={item.value} key={index} />
-                                                                            ))}
-                                                                        </Picker>
+                                                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                                            <Text>:</Text>
+                                                                            <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                                <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].Pertanyaan}</Text>
+                                                                            </View>
+                                                                        </View>
                                                                     )}
                                                                 </View>
                                                             </View>
 
                                                                 <View>
-                                                                    <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                                                                        <View style={{ flex: 2 }}>
-                                                                            <Text style={{ fontSize: 15 }}>Jumlah Sample</Text>
+                                                                    <View style={{ flexDirection: 'row', marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <View style={{ width: Dimension.width/2.5 }}>
+                                                                            <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DefinisiSample}</Text>
                                                                         </View>
-                                                                        <View style={{ flex: 3 }} >
-                                                                            <View style={{ borderWidth: 1, borderRadius: 5 }}>
-                                                                                <TextInput
-                                                                                    value={inputList[i].pertanyaan[idx].Sample}
-                                                                                    placeholder='Masukkan jumlah sample'
-                                                                                    style={{ marginHorizontal: 10 }}
-                                                                                    keyboardType={'numeric'}
-                                                                                    onChangeText={(val) => {
-                                                                                        let newData = [...inputList]
-                                                                                        inputList[i].pertanyaan[idx].Sample = val
-                                                                                        setInputList(newData)
-                                                                                    }}
-                                                                                />
+                                                                        <View style={{ width: Dimension.width/2.5 }} >
+                                                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                                                <Text>:</Text>
+                                                                                <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                                    <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].Sample}</Text>
+                                                                                </View>
                                                                             </View>
                                                                         </View>
                                                                     </View>
 
-                                                                    <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                                                                        <View style={{ flex: 2 }}>
-                                                                            <Text style={{ fontSize: 15 }}>Jumlah Temuan</Text>
+                                                                    <View style={{ flexDirection: 'row', marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <View style={{ width: Dimension.width/2.5 }}>
+                                                                            <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DefinisiTemuan}</Text>
                                                                         </View>
-                                                                        <View style={{ flex: 3}} >
-                                                                            <View style={{ borderWidth: 1, borderRadius: 5 }}>
-                                                                                <TextInput
-                                                                                    value={inputList[i].pertanyaan[idx].Temuan}
-                                                                                    placeholder='Masukkan jumlah temuan'
-                                                                                    style={{ marginHorizontal: 10 }}
-                                                                                    keyboardType={'numeric'}
-                                                                                    onChangeText={(val) => {
-                                                                                        let newData = [...inputList]
-                                                                                        inputList[i].pertanyaan[idx].Temuan = val
-                                                                                        setInputList(newData)
-                                                                                    }}
-                                                                                />
+                                                                        <View style={{ width: Dimension.width/2.5 }} >
+                                                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                                                <Text>:</Text>
+                                                                                <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                                    <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].Temuan}</Text>
+                                                                                </View>
                                                                             </View>
                                                                         </View>
                                                                     </View>
 
-                                                                    <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                                                                        <View style={{ flex: 2}} >
+                                                                    <View style={{ flexDirection: 'row', marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <View>
                                                                             <Text style={{ fontSize: 15 }}>Detail Temuan</Text>
                                                                         </View>
-                                                                        <View style={{ flex: 3}} >
-                                                                            <View style={{ borderWidth: 1, borderRadius: 5 }}>
-                                                                                <TextInput
-                                                                                    value={inputList[i].pertanyaan[idx].DetailTemuan}
-                                                                                    placeholder='Masukkan detail temuan'
-                                                                                    numberOfLines={10}
-                                                                                    multiline={true}
-                                                                                    style={{ marginHorizontal: 10 }}
-                                                                                    onChangeText={(val) => {
-                                                                                        let newData = [...inputList]
-                                                                                        inputList[i].pertanyaan[idx].DetailTemuan = val
-                                                                                        setInputList(newData)
-                                                                                    }}
-                                                                                    blurOnSubmit={true}
-                                                                                />
+                                                                        <View style={{ width: Dimension.width/2.5 }} >
+                                                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                                                <Text>:</Text>
+                                                                                <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                                    <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DetailTemuan}</Text>
+                                                                                </View>
                                                                             </View>
                                                                         </View>
                                                                     </View>
 
-                                                                    <View style={{ flexDirection: 'row' }}>
-                                                                        <View style={{ flex: 2}} >
+                                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <View>
                                                                             <Text style={{ fontSize: 15 }}>Rekomendasi</Text>
                                                                         </View>
-                                                                        <View style={{ flex: 3}} >
-                                                                            <View style={{ borderWidth: 1, borderRadius: 5 }}>
-                                                                                <TextInput
-                                                                                    value={inputList[i].pertanyaan[idx].Rekomendasi}
-                                                                                    placeholder='Masukkan rekomendasi'
-                                                                                    numberOfLines={5}
-                                                                                    multiline={true}
-                                                                                    style={{ marginHorizontal: 10 }}
-                                                                                    onChangeText={(val) => {
-                                                                                        let newData = [...inputList]
-                                                                                        inputList[i].pertanyaan[idx].Rekomendasi = val
-                                                                                        setInputList(newData)
-                                                                                    }}
-                                                                                    blurOnSubmit={true}
-                                                                                />
+                                                                        <View style={{ width: Dimension.width/2.5 }} >
+                                                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                                                <Text>:</Text>
+                                                                                <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                                                                                    <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].Rekomendasi}</Text>
+                                                                                </View>
                                                                             </View>
                                                                         </View>
                                                                     </View>
@@ -966,7 +893,7 @@ const EditChecklist = (props) => {
     )
 }
 
-export default EditChecklist
+export default ViewChecklist
 
 const styles = StyleSheet.create({
 

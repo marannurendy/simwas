@@ -111,7 +111,7 @@ const TindakLanjut = () => {
                             .then((response) => response.json())
                             .then((responseJSON) => {
                                 console.log(responseJSON)
-                                if (responseJSON.code === 200) {
+                                if (responseJSON.responseCode === 200) {
                                     const queryDeleteSosialisasiDatabase = "DELETE FROM ListSiapTL";
                                     const querydeletelist = "DELETE FROM OptionSTCL";
                                     db.transaction(

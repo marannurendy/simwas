@@ -1,6 +1,6 @@
 import Home from "./screen/home";
 import { SuratTugas, InputSuratTugas, EditSuratTugas } from "./screen/suratTugas";
-import { Checklist, InputChecklist, EditChecklist } from "./screen/checkList";
+import { Checklist, InputChecklist, EditChecklist, ViewChecklist } from "./screen/checkList";
 import { TindakLanjut, DetailTindakLanjut } from "./screen/tindakLanjut";
 import Pembinaan from "./screen/pembinaan";
 import Login from "./screen/login";
@@ -16,5 +16,6 @@ export {
     Pembinaan,
     Login,
     InputChecklist,
-    EditChecklist
+    EditChecklist,
+    ViewChecklist
 }

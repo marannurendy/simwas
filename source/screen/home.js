@@ -162,7 +162,7 @@ const Home = () => {
                                             </View>
                                         </View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text>Desetujui</Text>
+                                            <Text>Disetujui</Text>
                                             <View>
                                                 <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text>
                                             </View>
@@ -197,9 +197,9 @@ const Home = () => {
                                             </View>
                                         </View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text>Desetujui</Text>
+                                            <Text>Baru</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text> */}
                                             </View>
                                         </View>
                                     </View>
@@ -213,13 +213,13 @@ const Home = () => {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <Text>Total</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.total}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.total}</Text> */}
                                             </View>
                                         </View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text>Desetujui</Text>
+                                            <Text>Disetujui</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text> */}
                                             </View>
                                         </View>
                                     </View>
@@ -230,13 +230,13 @@ const Home = () => {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <Text>Total</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.total}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.total}</Text> */}
                                             </View>
                                         </View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text>Desetujui</Text>
+                                            <Text>Disetujui</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text> */}
                                             </View>
                                         </View>
                                     </View>
@@ -247,13 +247,13 @@ const Home = () => {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <Text>Total</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.total}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.total}</Text> */}
                                             </View>
                                         </View>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text>Desetujui</Text>
+                                            <Text>Disetujui</Text>
                                             <View>
-                                                <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text>
+                                                {/* <Text style={styles.activitystValue}>{dtStatus.disetujui}</Text> */}
                                             </View>
                                         </View>
                                     </View>
@@ -287,7 +287,7 @@ const Home = () => {
                             </TouchableOpacity>
                             <TouchableOpacity style={{ width: Dimension.width/5, alignItems: 'center' }} onPress={() => Navigation.navigate('TindakLanjut')}>
                                 <Image source={require('../assets/icon/TindakLanjut.png')} />
-                                <Text style={styles.menuDetail}>TIndak Lanjut</Text>
+                                <Text style={styles.menuDetail}>Tindak Lanjut</Text>
                             </TouchableOpacity>
                         </View>
 

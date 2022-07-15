@@ -91,11 +91,182 @@ const ModelGetDataEditChecklist = (type, register, param) => (new Promise((resol
     }
 }))
 
-const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promise((resolve, reject) => {
-    console.log(dataChecklist)
-    console.log(dataPemeriksaan)
-    console.log(param)
+const ModelEditChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promise( async (resolve, reject) => {
+    let dataPemeriksaanLength = dataPemeriksaan.length
+    let role = param.role === 'RPM' ? 2 : param.role === 'PPM' ? 3 : 1
+    let response = {
+        status : '',
+        data : ''
+    }
 
+    let queryInsertQuest = `INSERT INTO InputListChecklist (
+        NoST,
+        IdST,
+        IdPemeriksaan,
+        idPertanyaan,
+        Sample,
+        Temuan,
+        DetailTemuan,
+        Scoring,
+        Rekomendasi,
+        syncBy,
+        type,
+        stat
+    ) values `
+
+    let queryInsertPemeriksaan = `INSERT INTO ListPemeriksaan (
+        NoST,
+        IdST,
+        IdPemeriksaan,
+        JenisPememeriksaan,
+        KategoriPemeriksaan,
+        SubKategori
+    ) values `
+
+    let queryDeleteOldDataQuest = `DELETE FROM InputListChecklist WHERE NoST = '` + dataChecklist.noST + `' AND IdST = '` + dataChecklist.idST + `' AND syncBy = '` + param.username + `'`
+    let queryDeleteOldDataPemeriksaan = `DELETE FROM ListPemeriksaan WHERE NoST = '` + dataChecklist.noST + `' AND IdST = '` + dataChecklist.idST + `'`
+
+    let deleteFunction = await DeleteFunction(queryDeleteOldDataQuest, queryDeleteOldDataPemeriksaan)
+
+    if(dataPemeriksaanLength === 0) {
+        if(deleteFunction.status === 'SUCCESS') {
+            response = {
+                status : 'SUCCESS',
+                data: 'data berhasil di hapus'
+            }
+            resolve(response)
+        }else{
+            response = {
+                status : 'ERROR',
+                data : 'data gagal di hapus'
+            }
+            reject(response)
+        }
+    }
+
+    for(let i = 0; i < dataPemeriksaanLength; i++) {
+        queryInsertPemeriksaan = queryInsertPemeriksaan + "('"
+        + dataChecklist.noST
+        + "','"
+        + dataChecklist.idST
+        + "','"
+        + dataPemeriksaan[i].idPemeriksaan
+        + "','"
+        + dataPemeriksaan[i].jenisPemeriksaan
+        + "','"
+        + dataPemeriksaan[i].kategoriPemeriksaan
+        + "','"
+        + dataPemeriksaan[i].subKategori
+        + "')"
+
+        if( i !== dataPemeriksaanLength - 1) {
+            queryInsertPemeriksaan = queryInsertPemeriksaan + ","
+        }
+    }
+
+    for(let i = 0; i < dataPemeriksaanLength; i++) {
+        let dataPertanyaanLength = dataPemeriksaan[i].pertanyaan.length
+        let dt = dataPemeriksaan[i]
+
+        for(let d = 0; d < dataPertanyaanLength; d++) {
+            queryInsertQuest = queryInsertQuest + "('"
+            queryInsertQuest = queryInsertQuest + dataChecklist.noST
+            + "','"
+            + dataChecklist.idST
+            + "','"
+            + dt.idPemeriksaan
+            + "','"
+            + dt.pertanyaan[d].idPertanyaan
+            + "','"
+            + dt.pertanyaan[d].Sample
+            + "','"
+            + dt.pertanyaan[d].Temuan
+            + "','"
+            + dt.pertanyaan[d].DetailTemuan
+            + "','"
+            + dt.pertanyaan[d].Scoring
+            + "','"
+            + dt.pertanyaan[d].Rekomendasi
+            + "','"
+            + param.username
+            + "','"
+            + role
+            + "','"
+            + '1'
+            + "')"
+
+            if(d !== dataPertanyaanLength - 1) {
+                queryInsertQuest = queryInsertQuest + ","
+            }
+        }
+
+        if(i !== dataPemeriksaanLength - 1) {
+            queryInsertQuest = queryInsertQuest + ","
+        }
+    }
+
+    if(deleteFunction.status === 'SUCCESS') {
+        try{
+            db.transaction(
+                tx => {
+                    tx.executeSql(queryInsertPemeriksaan)
+                    tx.executeSql(queryInsertQuest)
+                }, function(error) {
+                    response = {
+                        status: 'ERROR',
+                        data: error.message
+                    }
+                    reject(response)
+                }, function() {
+                    response = {
+                        status: 'SUCCESS',
+                        data: 'data berhasil di input'
+                    }
+                    resolve(response)
+                }
+            )
+        }catch(error){
+            response = {
+                status: 'ERROR',
+                data: error.message
+            }
+            reject(response)
+        }
+    }
+
+}))
+
+const DeleteFunction = (queryDeleteOldDataQuest, queryDeleteOldDataPemeriksaan) => (new Promise((resolve, reject) => {
+    try{
+        db.transaction(
+            tx => {
+                tx.executeSql(queryDeleteOldDataQuest)
+                tx.executeSql(queryDeleteOldDataPemeriksaan)
+            }, function(error) {
+                response = {
+                    status: 'ERROR',
+                    data: error.message
+                }
+
+                reject(response)
+            }, function() {
+                response = {
+                    status: 'SUCCESS',
+                    data: 'delete data success'
+                }
+                resolve(response)
+            }
+        )
+    }catch(error){
+        response = {
+            status: 'ERROR',
+            data: error.message
+        }
+        reject(response)
+    }
+}))
+
+const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promise((resolve, reject) => {
     let dataPemeriksaanLength = dataPemeriksaan.length
     let role = param.role === 'RPM' ? 2 : param.role === 'PPM' ? 3 : 1
     let response = {
@@ -242,5 +413,6 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
 export {
     Model,
     ModelInsertChecklist,
+    ModelEditChecklist,
     ModelGetDataEditChecklist
 }

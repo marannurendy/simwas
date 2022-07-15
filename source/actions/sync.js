@@ -14,6 +14,7 @@ import {
     GetOptionSTCL,
     GetMasterCekList,
     GetListInputanCeklist,
+    GetListDetailCL,
     GetListNotYetTL } from "../../config/conf"
 import moment from 'moment'
 
@@ -1083,6 +1084,105 @@ const getSyncData = (params) => new Promise( async (resolve) => {
         }
     })
 
+    const InsertGetListDetailCL = (responseJson) => new Promise((resolve, reject) => {
+        try{
+            if(responseJson.data !== 0) {
+                let queryInputListChecklist = `INSERT OR IGNORE INTO InputListChecklist (
+                    NoST,
+                    IdST,
+                    DefinisiSample,
+                    DefinisiTemuan,
+                    IdPemeriksaan,
+                    idPertanyaan,
+                    Sample,
+                    Temuan,
+                    DetailTemuan,
+                    Rekomendasi,
+                    syncBy,
+                    type ) values `
+
+                let queryInputListPemeriksaan = `INSERT INTO ListPemeriksaan (
+                    NoST,
+                    IdST,
+                    IdPemeriksaan,
+                    JenisPememeriksaan,
+                    KategoriPemeriksaan,
+                    SubKategori ) values `
+
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    let idPemeriksaan = responseJson.data[i].IdJenisPemeriksaan + responseJson.data[i].IdKategori + responseJson.data[i].IdSubKategori
+                    queryInputListChecklist = queryInputListChecklist + "('"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + responseJson.data[i].Definisi1
+                    + "','"
+                    + responseJson.data[i].Definisi2
+                    + "','"
+                    + idPemeriksaan
+                    + "','"
+                    + responseJson.data[i].IdPertanyaan
+                    + "','"
+                    + responseJson.data[i].Jawaban1
+                    + "','"
+                    + responseJson.data[i].Jawaban2
+                    + "','"
+                    + responseJson.data[i].DetailTemuan
+                    + "','"
+                    + responseJson.data[i].Rekomendasi
+                    + "','"
+                    + params.Username
+                    + "','"
+                    + 1
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) queryInputListChecklist = queryInputListChecklist + ","
+                }
+                queryInputListChecklist = queryInputListChecklist + ';'
+
+                console.log(queryInputListChecklist)
+
+                for(let i = 0; i < responseJson.data.length; i++ ) {
+                    let idPemeriksaan = responseJson.data[i].IdJenisPemeriksaan + responseJson.data[i].IdKategori + responseJson.data[i].IdSubKategori
+                    queryInputListPemeriksaan = queryInputListPemeriksaan + "('"
+                    + responseJson.data[i].NoST
+                    + "','"
+                    + responseJson.data[i].IdST
+                    + "','"
+                    + idPemeriksaan
+                    + "','"
+                    + responseJson.data[i].IdJenisPemeriksaan
+                    + "','"
+                    + responseJson.data[i].IdKategori
+                    + "','"
+                    + responseJson.data[i].IdSubKategori
+                    + "')"
+
+                    if (i != responseJson.data.length - 1) queryInputListPemeriksaan = queryInputListPemeriksaan + ","
+                }
+                queryInputListPemeriksaan = queryInputListPemeriksaan + ';'
+
+                db.transaction(
+                    tx => {
+                        tx.executeSql(queryInputListChecklist)
+                        tx.executeSql(queryInputListPemeriksaan)
+                    }, function(error) {
+                        reject('GAGAL INPUT DATA Detail Checklist')
+                    }, function() {
+                        resolve('BERHASIL')
+                    }
+                )
+                return
+            } else {
+                resolve('BERHASIL')
+                return
+            }
+        }catch(error){
+            reject('ERROR')
+        }
+    })
+
     //TINDAK LANJUT
     const InsertNotYetTL = (responseJson) => new Promise ((resolve, reject) => {
         try{
@@ -1358,6 +1458,19 @@ const getSyncData = (params) => new Promise( async (resolve) => {
         await InsertOptionSTCL(jsonOptionSTCL)
         if (__DEV__) console.log(GetOptionSTCL + '/' + params.Username)
         if (__DEV__) console.log('Insert Ceklist RPM atau PPM DONE')
+
+        const responseGetListDetailCL = await fetch(GetListDetailCL + '/' + params.Username, {
+            method: 'GET',
+            headers: {
+                Authorization: token,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        const jsonGetListDetailCL = await responseGetListDetailCL.json(responseGetListDetailCL)
+        await InsertGetListDetailCL(jsonGetListDetailCL)
+        if (__DEV__) console.log(GetListDetailCL + '/' + params.Username)
+        if (__DEV__) console.log('Insert Detail Checklist DONE')
 
         return 'SUCCESS'
     }

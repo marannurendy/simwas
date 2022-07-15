@@ -55,7 +55,7 @@ const Header = () => {
                     <View style={{ marginHorizontal: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
                         <View>
                             <Text style={{ fontSize: 17, fontWeight: 'bold' }}>{nama}</Text>
-                            <Text>{positionName}</Text>
+                            {/* <Text>{positionName}</Text> */}
                             <Text>{role} - {kodeUnit}</Text>
                         </View>
                         {Route.name == 'Front Home' ? (
