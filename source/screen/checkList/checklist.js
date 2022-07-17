@@ -107,6 +107,8 @@ const Checklist = () => {
 
         console.log(data)
 
+        // setIsLoading(false)
+
         const timeOut = (milisecond, promise) => {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -150,48 +152,50 @@ const Checklist = () => {
                                             {
                                                 text: 'Ok',
                                                 onPress: () => {
-                                                    let queryCek = `SELECT * FROM InputListChecklist WHERE syncBy = '` + userInfo.username + `' AND stat IS NOT NULL`
-                                                    try{
-                                                        db.transaction(
-                                                            tx => {
-                                                                tx.executeSql(queryCek, [], (tx, results) => {
-                                                                    let a = results.rows.length
+                                                    // let queryCek = `SELECT * FROM InputListChecklist WHERE syncBy = '` + userInfo.username + `' AND stat `
+                                                    flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
+                                                    setIsLoading(false)
+                                                    // try{
+                                                    //     db.transaction(
+                                                    //         tx => {
+                                                    //             tx.executeSql(queryCek, [], (tx, results) => {
+                                                    //                 let a = results.rows.length
                 
-                                                                    let queryUpdate = `UPDATE InputListChecklist SET stat = null WHERE NoST IN (`
-                                                                    for(let i = 0; i < a; i++) {
-                                                                        let data = results.rows.item(i)
+                                                    //                 let queryUpdate = `UPDATE InputListChecklist SET stat = null WHERE NoST IN (`
+                                                    //                 for(let i = 0; i < a; i++) {
+                                                    //                     let data = results.rows.item(i)
                 
-                                                                        queryUpdate = queryUpdate + data.NoST
+                                                    //                     queryUpdate = queryUpdate + data.NoST
                 
-                                                                        if(i !== a - 1) {
-                                                                            queryUpdate = queryUpdate + ','
-                                                                        }
-                                                                    }
+                                                    //                     if(i !== a - 1) {
+                                                    //                         queryUpdate = queryUpdate + ','
+                                                    //                     }
+                                                    //                 }
                 
-                                                                    queryUpdate = queryUpdate + ');'
+                                                    //                 queryUpdate = queryUpdate + ');'
                                                                     
-                                                                    try{
-                                                                        db.transaction(
-                                                                            tx => {
-                                                                                tx.executeSql(queryUpdate)
-                                                                            }, function(error) {
-                                                                                setIsLoading(false)
-                                                                                alert(error.message)
-                                                                            }, function() {
-                                                                                flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
-                                                                                setIsLoading(false)
-                                                                            }
-                                                                        )
-                                                                    }catch(error) {
-                                                                        setIsLoading(false)
-                                                                        alert(error.message)
-                                                                    }
-                                                                })
-                                                            }
-                                                        )
-                                                    }catch(error) {
-                                                        setIsLoading(false)
-                                                    }
+                                                    //                 try{
+                                                    //                     db.transaction(
+                                                    //                         tx => {
+                                                    //                             tx.executeSql(queryUpdate)
+                                                    //                         }, function(error) {
+                                                    //                             setIsLoading(false)
+                                                    //                             alert(error.message)
+                                                    //                         }, function() {
+                                                    //                             flashNotification("Berhasil !", 'Data berhasil di kirim', "#41BA90", "#fff")
+                                                    //                             setIsLoading(false)
+                                                    //                         }
+                                                    //                     )
+                                                    //                 }catch(error) {
+                                                    //                     setIsLoading(false)
+                                                    //                     alert(error.message)
+                                                    //                 }
+                                                    //             })
+                                                    //         }
+                                                    //     )
+                                                    // }catch(error) {
+                                                    //     setIsLoading(false)
+                                                    // }
                                                 }
                                             }
                                         ]
@@ -225,7 +229,8 @@ const Checklist = () => {
             a.DetailTemuan,
             a.Scoring,
             a.Rekomendasi,
-            a.syncBy as Username
+            a.syncBy as Username,
+            a.stat as FlagDel
             FROM InputListChecklist a
             INNER JOIN ListChecklist b ON a.NoST = b.NoST
             WHERE a.syncBy = '` + userInfo.username + `' AND a.stat IS NOT NULL`

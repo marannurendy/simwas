@@ -192,7 +192,7 @@ const ModelEditChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promi
             + "','"
             + role
             + "','"
-            + '1'
+            + dt.pertanyaan[d].stat
             + "')"
 
             if(d !== dataPertanyaanLength - 1) {
@@ -368,7 +368,7 @@ const ModelInsertChecklist = (dataChecklist, dataPemeriksaan, param) => (new Pro
             + "','"
             + role
             + "','"
-            + '1'
+            + '0'
             + "')"
 
             if(d !== dataPertanyaanLength - 1) {

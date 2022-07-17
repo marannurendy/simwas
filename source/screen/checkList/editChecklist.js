@@ -56,7 +56,10 @@ const EditChecklist = (props) => {
             ]
         }
     ])
+
     let [userInfo, setUserInfo] = useState()
+
+    let [removedItem, setRemovedItem] = useState([])
 
     let [date, setDate] = useState(new Date())
     const [items, setItems] = useState([])
@@ -169,6 +172,7 @@ const EditChecklist = (props) => {
         console.log(detailQuest.data)
         // console.log(detailQuest)
         setInputList(detailQuest.data)
+        // setDtInputList(detailQuest.data)
 
 
         let masterDataDetail = await selectMaster(queryGetDataDetail)
@@ -252,11 +256,15 @@ const EditChecklist = (props) => {
                         for(let a = 0; a < dataLen; a++) {
                             let dt = results.rows.item(a)
 
-                            let queryQuest = `SELECT * FROM InputListChecklist WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `'`
+                            let queryQuest = `SELECT * FROM InputListChecklist WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `' AND stat != '1'`
+                            // let queryQuest = `SELECT * FROM InputListChecklist WHERE AND NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `' AND stat NOT IN (NULL)`
+                            // console.log(queryQuest)
                             let quest = await getQuestion(queryQuest)
+                            // console.log("pertanyaan")
+                            // console.log(quest)
 
                             if(a == 0) {
-                                console.log("ini pertama")
+                                // console.log("ini pertama")
                                 const newJenisPemeriksaan = []
                                 const newKategoriPemeriksaan = []
                                 const newSubKategori = []
@@ -272,7 +280,7 @@ const EditChecklist = (props) => {
                                 subKategori.push(newSubKategori[0])
                                 pertanyaan.push(newPertanyaan[0])
                             }else{
-                                console.log("ini kedua")
+                                // console.log("ini kedua")
 
                                 jenisPemeriksaan.push(masterJenisPemeriksaan.data)
                                 kategoriPemeriksaan.push(masterKategoriPemeriksaan.data)
@@ -402,6 +410,7 @@ const EditChecklist = (props) => {
     }
 
     const jenisPemeriksaanChangeHandler = (val, i) => {
+        console.log(val)
         let newData = [...inputList]
         newData[i].jenisPemeriksaan = val
         newData[i].kategoriPemeriksaan = ''
@@ -522,10 +531,20 @@ const EditChecklist = (props) => {
         setInputList([...inputList, newObj])
     }
 
-    const removeHandler = (index) => {
+    const removeHandler = (index, item) => {
 
-        console.log(index)
+        let idx = removedItem.length
+        let data = [...removedItem]
+        data.push(item)
 
+        for(let a = 0; a < data[idx].pertanyaan.length; a++) {
+            data[idx].pertanyaan[a].stat = "1"
+        }
+
+        console.log(data)
+        setRemovedItem(data)
+
+        //TO REMOVE
         let dt = [...inputList]
         dt.splice(index, 1)
         setInputList(dt)
@@ -594,11 +613,26 @@ const EditChecklist = (props) => {
 
     const SaveHandler = async () => {
 
-        // console.log(inputList)
+        // var difference = dtInputList.filter(x => inputList.indexOf(x) === -1)
 
+        // console.log('diferensiasi')
+        // console.log(difference)
+
+        // console.log(inputList)
         // console.log(kategoriPemeriksaan)
+
+        // console.log("here")
+
+        // let newData = [...inputList]
+        // for(let a = 0; a < removedItem.length; a++) {
+        //     newData.push(removedItem[a])
+        // }
+        // console.log(newData)
+        // console.log(newData)
+
+        // UNCOMMENT
         let dataLength = inputList.length
-        let dataPemeriksaan = inputList
+        // let dataPemeriksaan = inputList
         let dataChecklist = {
             noST : valueST,
             idST : dataInput.IdST,
@@ -620,6 +654,13 @@ const EditChecklist = (props) => {
                 {
                     text: 'Ya',
                     onPress: async () => {
+                        let newData = [...inputList]
+                        for(let a = 0; a < removedItem.length; a++) {
+                            newData.push(removedItem[a])
+                        }
+                        // console.log(newData)
+                        let dataPemeriksaan = newData
+
                         const PostData = await ModelEditChecklist(dataChecklist, dataPemeriksaan, userInfo)
         
                         if(PostData.status === 'ERROR') {
@@ -741,7 +782,7 @@ const EditChecklist = (props) => {
                                             <TouchableOpacity onPress={() => addFormHandler()} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#0085E5' }}>
                                                 <Ionicons name="md-add-circle" size={26} color="white" />
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => removeHandler(i)} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#FF6347' }}>
+                                            <TouchableOpacity onPress={() => removeHandler(i, inputList[i])} style={{ marginHorizontal: 2.5, paddingHorizontal: 20, paddingVertical: 3, borderRadius: 10, backgroundColor: '#FF6347' }}>
                                                 <Ionicons name="remove-circle-outline" size={26} color="white" />
                                             </TouchableOpacity>
                                         </View>
@@ -782,6 +823,19 @@ const EditChecklist = (props) => {
                                                         <Picker
                                                             selectedValue={inputList[i].kategoriPemeriksaan}
                                                             onValueChange={(val, idx) => kategoriPemeriksaanChangeHandler(val, i)}
+                                                            onFocus={() => {
+                                                                let optData = []
+                                                                optData = dtKategoriPemeriksaan.filter(function(item) {
+                                                                    const itemData = item.IdTipeCeklist.toUpperCase();
+                                                                    const textData = inputList[i].jenisPemeriksaan.toUpperCase();
+                                                                    return itemData.includes(textData);
+                                                                })
+
+                                                                let newdt = [...kategoriPemeriksaan]
+                                                                newdt[i] = [...optData]
+
+                                                                setKategoriPemeriksaan([...newdt]);
+                                                            }}
                                                             style={{ fontSize: 10 }}
                                                         >
                                                             <Picker.Item label={'Silahkan Pilih'} value={''} />
@@ -807,6 +861,19 @@ const EditChecklist = (props) => {
                                                         <Picker
                                                         selectedValue={inputList[i].subKategori}
                                                         onValueChange={(val, idx) => subKategoriChangeHandler(val, i)}
+                                                        onFocus={() => {
+                                                            let optData = []
+                                                            optData = dtSubKategori.filter(function(item) {
+                                                                const itemData = item.IdKategori.toUpperCase();
+                                                                const textData = inputList[i].kategoriPemeriksaan.toUpperCase();
+                                                                return itemData.includes(textData);
+                                                            })
+
+                                                            let newdt = [...subKategori]
+                                                            newdt[i] = [...optData]
+
+                                                            setSubKategori([...newdt]);
+                                                        }}
                                                         style={{ fontSize: 10 }}
                                                     >
                                                         <Picker.Item label={'Silahkan Pilih'} value={''} />
@@ -846,6 +913,17 @@ const EditChecklist = (props) => {
                                                                         <Picker
                                                                             selectedValue={inputList[i].pertanyaan[idx].idPertanyaan}
                                                                             onValueChange={(val) => pertanyaanChangeHandler(val, i, idx)}
+                                                                            onFocus={() => {
+                                                                                let optData = []
+                                                                                optData = dtPertanyaan.filter(function(item) {
+                                                                                    const itemData = item.IdSubKategori.toUpperCase();
+                                                                                    const textData = inputList[i].subKategori.toUpperCase();
+                                                                                    return itemData.includes(textData);
+                                                                                })
+
+                                                                                let newdt = [...pertanyaan]
+                                                                                newdt[i] = [...optData]
+                                                                            }}
                                                                             style={{ fontSize: 10 }}
                                                                         >
                                                                             <Picker.Item label={'Silahkan Pilih'} value={''} />

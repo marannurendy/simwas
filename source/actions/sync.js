@@ -1099,6 +1099,7 @@ const getSyncData = (params) => new Promise( async (resolve) => {
                     DetailTemuan,
                     Rekomendasi,
                     syncBy,
+                    stat,
                     type ) values `
 
                 let queryInputListPemeriksaan = `INSERT INTO ListPemeriksaan (
@@ -1133,6 +1134,8 @@ const getSyncData = (params) => new Promise( async (resolve) => {
                     + responseJson.data[i].Rekomendasi
                     + "','"
                     + params.Username
+                    + "','"
+                    + 0
                     + "','"
                     + 1
                     + "')"

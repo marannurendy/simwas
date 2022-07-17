@@ -266,7 +266,7 @@ const ViewChecklist = (props) => {
                                                     b.Pertanyaan
                                                 FROM InputListChecklist a
                                                 INNER JOIN Pertanyaan b ON a.idPertanyaan = b.IdPertanyaan
-                                                WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `'`
+                                                WHERE NoST = '` + dt.NoST + `' AND IdPemeriksaan = '` + dt.IdPemeriksaan + `' AND stat != '1'`
                             let quest = await getQuestion(queryQuest)
 
                             if(a == 0) {
