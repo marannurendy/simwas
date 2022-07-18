@@ -102,6 +102,8 @@ const ModelEditChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promi
     let queryInsertQuest = `INSERT INTO InputListChecklist (
         NoST,
         IdST,
+        DefinisiSample,
+        DefinisiTemuan,
         IdPemeriksaan,
         idPertanyaan,
         Sample,
@@ -173,6 +175,10 @@ const ModelEditChecklist = (dataChecklist, dataPemeriksaan, param) => (new Promi
             queryInsertQuest = queryInsertQuest + dataChecklist.noST
             + "','"
             + dataChecklist.idST
+            + "','"
+            + dt.pertanyaan[d].DefinisiSample
+            + "','"
+            + dt.pertanyaan[d].DefinisiTemuan
             + "','"
             + dt.idPemeriksaan
             + "','"

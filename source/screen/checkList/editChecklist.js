@@ -163,13 +163,16 @@ const EditChecklist = (props) => {
         // let test1 = await selectMaster(test, register)
         // console.log(test1)
 
-        let queryDetailQuest = `SELECT DISTINCT * FROM ListPemeriksaan WHERE NoST = '` + register + `'`
+        let queryDetailQuest = `SELECT DISTINCT a.*
+                                FROM ListPemeriksaan a
+                                INNER JOIN InputListChecklist b ON a.IdPemeriksaan = b.IdPemeriksaan
+                                WHERE a.NoST = '` + register + `' AND b.stat <> '1'`
         let detailQuest = await selectMasterDetail(queryDetailQuest, register)
         if(detailQuest.status === 'ERROR') {
             alert(detailQuest.data)
             return false
         }
-        console.log(detailQuest.data)
+        // console.log(detailQuest.data)
         // console.log(detailQuest)
         setInputList(detailQuest.data)
         // setDtInputList(detailQuest.data)
@@ -658,8 +661,9 @@ const EditChecklist = (props) => {
                         for(let a = 0; a < removedItem.length; a++) {
                             newData.push(removedItem[a])
                         }
-                        // console.log(newData)
+
                         let dataPemeriksaan = newData
+                        // console.log(dataPemeriksaan)
 
                         const PostData = await ModelEditChecklist(dataChecklist, dataPemeriksaan, userInfo)
         

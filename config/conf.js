@@ -16,7 +16,7 @@ if (IS_DEVELOPMENT) {
     MINOR_VERSION = '0';
     PATCH_VERSION = '0';
     BUILD = '001';
-    TANGGAL = '2022-06-22';
+    TANGGAL = '2022-07-18';
     
     base_url = 'http://10.61.3.253:9000';
 

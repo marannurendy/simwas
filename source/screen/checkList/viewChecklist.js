@@ -175,7 +175,7 @@ const ViewChecklist = (props) => {
             alert(detailQuest.data)
             return false
         }
-        console.log(detailQuest.data)
+        console.log(detailQuest.data[0])
         // console.log(detailQuest)
         setInputList(detailQuest.data)
 
@@ -818,9 +818,16 @@ const ViewChecklist = (props) => {
 
                                                                 <View>
                                                                     <View style={{ flexDirection: 'row', marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                        <View style={{ width: Dimension.width/2.5 }}>
-                                                                            <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DefinisiSample}</Text>
-                                                                        </View>
+                                                                        {inputList[i].pertanyaan[idx].DefinisiSample === "undefined" ? (
+                                                                            <View style={{ width: Dimension.width/2.5 }}>
+                                                                                <Text style={{ fontSize: 15 }}>Jumlah Sample</Text>
+                                                                            </View>
+                                                                        ) : (
+                                                                            <View style={{ width: Dimension.width/2.5 }}>
+                                                                                <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DefinisiSample}</Text>
+                                                                            </View>
+                                                                        )}
+                                                                        
                                                                         <View style={{ width: Dimension.width/2.5 }} >
                                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                                                 <Text>:</Text>
@@ -832,9 +839,15 @@ const ViewChecklist = (props) => {
                                                                     </View>
 
                                                                     <View style={{ flexDirection: 'row', marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                        <View style={{ width: Dimension.width/2.5 }}>
-                                                                            <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DefinisiTemuan}</Text>
-                                                                        </View>
+                                                                        {inputList[i].pertanyaan[idx].DefinisiTemuan === "undefined" ? (
+                                                                            <View style={{ width: Dimension.width/2.5 }}>
+                                                                                <Text style={{ fontSize: 15 }}>Jumlah Temuan</Text>
+                                                                            </View>
+                                                                        ) : (
+                                                                            <View style={{ width: Dimension.width/2.5 }}>
+                                                                                <Text style={{ fontSize: 15 }}>{inputList[i].pertanyaan[idx].DefinisiTemuan}</Text>
+                                                                            </View>
+                                                                        )}
                                                                         <View style={{ width: Dimension.width/2.5 }} >
                                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                                                 <Text>:</Text>
