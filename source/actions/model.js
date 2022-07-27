@@ -35,6 +35,15 @@ const Model = (type, params) => (new Promise((resolve, reject) => {
             id_bisnis,
             nama_bisnis FROM MasterKategori`
         resolve(queryGetMasterKategoriPemeriksaan)
+    }else if(type === 'queryGetMasterKategoriPemeriksaanInput'){
+        let queryGetMasterKategoriPemeriksaanInput = `SELECT DISTINCT
+            IdKategori as value,
+            IdTipeCeklist,
+            Nama_Kategori as label,
+            Type_Ceklist,
+            id_bisnis,
+            nama_bisnis FROM MasterKategori WHERE IdKategori <> '1'`
+        resolve(queryGetMasterKategoriPemeriksaanInput)
     }else if(type === 'queryGetMasterSubKategori') {
         let queryGetMasterSubKategori = `SELECT DISTINCT
             IdKategori,

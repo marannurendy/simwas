@@ -93,7 +93,7 @@ const InputChecklist = () => {
     const getMaster = async (params) => {
         let queryGetMasterST = await Model('queryGetMasterST', params)
         let queryGetMasterJenisPemeriksaan = await Model('queryGetMasterJenisPemeriksaan', params)
-        let queryGetMasterKategoriPemeriksaan = await Model('queryGetMasterKategoriPemeriksaan', params)
+        let queryGetMasterKategoriPemeriksaan = await Model('queryGetMasterKategoriPemeriksaanInput', params)
         let queryGetMasterSubKategori = await Model('queryGetMasterSubKategori', params)
         let queryGetPertanyaan = await Model('queryGetMasterPertanyaan', params)
         let queryGetMasterJawaban = await Model('queryGetMasterJawaban', params)
@@ -270,6 +270,8 @@ const InputChecklist = () => {
 
         let newdt = [...pertanyaan]
         newdt[i] = [...optData]
+
+        console.log(newdt)
 
         setPertanyaan([...newdt]);
     }
